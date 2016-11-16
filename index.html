@@ -1,0 +1,203 @@
+<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='initial-scale=1.0, maximum-scale=1.0, user-scalable=no'><script src='rapydscript-0.5.35.min.js'></script><script src='jquery-3.1.1.min.js'></script><script src='underscore-min.js'></script><!--<script id='backbone-min.js'></script>--><style id='style'></style></head><body><script id='rs_code' type='text/python'>
+#-----------------------------------------------------------------------
+
+
+class PubSub:
+
+    def __init__(self):
+        self.observers = {}
+
+
+    def subscribe(self, topic, cb):
+        if topic not in self.observers:
+            self.observers[topic] = []
+        self.observers[topic].push(cb)
+
+    
+    def unsubscribe(self, topic, cb):
+        if topic in self.observers:
+            if cb in self.observers[topic]:
+                del self.observers[topic][self.observers[topic].index(cb)]
+
+    
+    def trigger(self, topic):
+        if topic in self.observers:
+            for cb in self.observers[topic]:
+                cb()
+
+
+
+
+class Model:
+
+    def __init__(self, obj):
+        self.attrs = obj or {}
+        self.pubsub = PubSub()
+
+        
+    def get(self, attr):
+        if attr in self.attrs:
+            return self.attrs[attr]
+        else:
+            JS("throw 'KeyError: ' + attr + ' is not in self.attrs'")
+
+    
+    def set(self, attr, val):
+        self.attrs[attr] = val
+        self.pubsub.trigger('change')
+    
+    
+    def remove(self):
+        self.pubsub.trigger('destroy')
+        self = undefined
+
+
+
+
+class Collection(Array):
+
+    def __init__(self):
+        self.model = Model
+        self.pubsub = PubSub()
+
+
+    def create(self, obj):
+        self.push(Model(obj))
+        self.pubsub.trigger('change')
+
+    
+    def add(self, model):
+        if model.constructor == Model:
+            self.push(model)
+            self.pubsub.trigger('change')
+        else:
+            JS("throw 'TypeError: Must be type of Model'")
+
+    
+    def get(self, num):
+        if typeof(num) == 'number' and Math.floor(num) == num:
+            if num < self.length:
+                return self[num]
+            else:
+                JS("throw 'IndexError: Index ' + num + ' not found. This collection length is ' + self.length")
+        else:
+            JS("throw 'TypeError: ' + num + '. Must be an integer'")
+
+    
+    def getQty(self):
+        return self.length
+
+    
+    def getAll(self):
+        return self.slice(0, self.length)
+
+
+
+
+class View:
+
+    def __init__(self, model):
+        self.el = $("<div></div>")
+
+        self.model = model
+        self.bind_events()
+        self.render.bind(self)()
+    
+    
+    def listenTo(self, target, topic, callback):
+        target.pubsub.subscribe(topic, callback)
+        
+    
+    def bind_events(self):
+        self.listenTo(self.model, 'change', self.render.bind(self))
+        self.el.on('click', 'h2', self.click.bind(self))
+
+    
+    def template(self, objs):
+        _template_string = \
+        """
+        <h2>Hi, my name is <%= name %>, and i'm <%= age %> years old.</h2>
+        """
+        return _.template(_template_string)(objs)
+
+    
+    def render(self):
+        self.el.html(self.template(self.model.attrs))
+
+    
+    def click(self):
+        self.model.set('age', self.model.get('age') + 1)
+
+
+
+
+class AppView:
+
+    def __init__(self):
+        self.el = self.root()
+        self.el.attr('id', 'root')
+        self.el.appendTo(document.body)
+        self.bind_events.bind(self)()
+        self.collection = Collection()
+
+    
+    def root(self):
+        _template_string = \
+        """
+        <div>
+        Name: <input id='name' type='text'/><br/>
+        Age: <input id='age' type='text'/><br/>
+        <input id='submit' type='submit' value="OK"/>
+        </div>
+        """
+        return $(_template_string)
+       
+
+    def bind_events(self):
+        self.el.on('click', '#submit', self.click_submit.bind(self))
+        
+        name_el = $('#name')
+        age_el = $('#age')
+        
+        name_el.on('keypress', def(e):
+            if e.which == 13:
+                if name_el.val() == '':
+                    alert('Name can\'t be empty!')
+                    name_el.focus()
+                else:
+                    age_el.focus()
+                    
+        )
+        
+        age_el.on('keypress', def(e):
+            def isposnumber(s):
+                patt = /^0$|^[0-9]*\.?[0-9]*$/g
+                return patt.test(s)
+                
+            if e.which == 13:
+                if age_el.val() == '':
+                    alert('Age can\'t be empty!')
+                elif isposnumber(age_el.val()):
+                    self.click_submit.bind(self)()
+                else:
+                    alert('Age must be positive number!')
+        )
+    
+    
+    def click_submit(self):
+        m = Model({name: $('#name').val(), age: parseFloat($('#age').val())})
+        self.collection.add(m)
+        v = View(m)
+        v.el.appendTo(self.el)
+        $('#name').val('').focus()
+        $('#age').val('')
+        
+        
+
+
+if __name__ == '__main__':
+    app = AppView()
+
+
+#-----------------------------------------------------------------------
+</script><script id="rs_out"></script><script>document.getElementById("rs_out").innerHTML = rs_compile("__main__", document.getElementById("rs_code").innerHTML);</script></body></html>
