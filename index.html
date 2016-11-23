@@ -30,7 +30,7 @@ textarea {
     border-type: solid;
     border-width: 1px 0px 1px 0px;
     border-color: white;
-    //border: solid 1px white;
+    margin: 0px;
 }
 
 textarea:focus {
@@ -68,7 +68,7 @@ textarea:focus {
 
 
 <!--*****************************************************************-->
-<div id='buffer'></div><script id='rs_code' type='text/python'>
+<div id='buffer'></div><div id='rscode_buffer'></div><script id='rs_code' type='text/python'>
 #************************** RAPYDSCRIPT *******************************/
 
 
@@ -79,12 +79,70 @@ ruler = document.getElementById('ruler')
 buffer = document.getElementById('buffer')
 
 
+intro = def():
+    code_out.value = "RapydScript 0.5.35 REPL (default, " + (new Date).toString() + ")\n" +\
+    "[" + window.clientInformation.userAgent + "] on " + window.clientInformation.platform + "\n" +\
+    "Type \"ih()\" or \"dh()\" to increase or decrease body height.\n" +\
+    "Type \"ifz()\" or \"dfz()\" to increase or decrease font size.\n" +\
+    "Type \"intro()\" to print this message. Type \"cls()\" to clear screen."
+
+setTimeout(intro,0)
+
 ՐՏ_print = def(t):
     code_out.value = code_out.value + t.toString() + '\n'
 
 
+cls = def():
+    setTimeout(def():
+        code_out.value = ''
+        code_in.value = ''
+        setRuler()
+    ,0)
+
+
+document.body.style.height = '100%'
+
+ta = document.getElementsByTagName('TEXTAREA')
+for i in ta:
+    i.style.fontSize = '10pt'
+
+
+dh = def(n=5):
+    document.body.style.height = (parseInt(document.body.style.height) - n).toString() + '%'
+
+
+ih = def(n=5):
+    document.body.style.height = (parseInt(document.body.style.height) + n).toString() + '%'
+
+
+ifz = def(n=1):
+    ta = document.getElementsByTagName('TEXTAREA')
+    for i in ta:
+        i.style.fontSize = (parseInt(i.style.fontSize) + n).toString() + 'pt'
+
+
+dfz = def(n=1):
+    ta = document.getElementsByTagName('TEXTAREA')
+    for i in ta:
+        i.style.fontSize = (parseInt(i.style.fontSize) - n).toString() + 'pt'
+
+
+rscode_buffer_count = 0
+rscode_pointer = 0
+
+
 def exec():
+    nonlocal rscode_buffer_count
+    nonlocal rscode_pointer
     code_in_text = code_in.value
+    rs = document.createElement("script")
+    rs.type = 'text/python'
+    rs.id = 'rsb' + rscode_buffer_count
+    rs.innerHTML = code_in_text
+    rscode_buffer.appendChild(rs)
+    rscode_buffer_count += 1
+    rscode_pointer = rscode_buffer_count + 0
+    
     code_out_text= rs_compile('__code_in__', code_in_text).replace("var __name__ = \"__main__\";\n","")
     s = document.createElement("script")
     s.innerHTML = code_out_text
@@ -93,9 +151,41 @@ def exec():
     code_in.value = ''
     code_out.value = code_out.value + '\n-------------------------------------\n'
 
+
+def getNewLinePosition():
+    nonlocal code_in
+    len_code = code_in.value.length
+    br_line = code_in.value.split('\n')
+    list_nl = []
+    for i in br_line:
+        if list_nl.length == 0:
+            list_nl.push(i.length)
+        else:
+            list_nl.push(list_nl[-1] + 1 + i.length)
+    if list_nl.length == 0:
+        return [0]
+    else:
+        return list_nl
+
+
+def setRuler():
+    line_count = getNewLinePosition().length
+    ruler_text = ">>>\n"
+    for i in range(line_count - 1):
+        ruler_text = ruler_text + '...\n'
+    ruler.value = ruler_text
+
+
+def moveTo0():
+    code_in.selectionStart = 0
+    code_in.selectionEnd = 0
+    setRuler()
+
+
 code_in.onkeydown = def(ev):
-    if ev.which == 13:
-        console.log(code_in.value)
+    nonlocal rscode_buffer_count
+    nonlocal rscode_pointer
+    if ev.which == 13:    
         if code_in.value[-1] == '\n':
             ev.preventDefault()
             exec()
@@ -103,9 +193,36 @@ code_in.onkeydown = def(ev):
             ruler.value = ruler.value + "...\n"
     elif ev.which == 8:
         if code_in.value[-1] == '\n':
-            console.log(code_in.value)
             ruler.value = ruler.value[0:ruler.value.length-4]
-
+    elif ev.which == 38:
+        if ev.target.selectionStart <= getNewLinePosition()[0]:
+            ev.preventDefault()
+            if rscode_pointer == 0:
+                if rscode_buffer_count == 0:
+                    pass
+                else:
+                    code_in.value = document.getElementById('rsb'+rscode_pointer).innerHTML
+                    setTimeout(moveTo0,0)
+            else:
+                rscode_pointer = rscode_pointer - 1
+                code_in.value = document.getElementById('rsb'+rscode_pointer).innerHTML
+                setTimeout(moveTo0,0)
+    elif ev.which == 40:
+        nl_poss = getNewLinePosition()
+        if nl_poss.length < 2 or ev.target.selectionStart > nl_poss[-2]:
+            ev.preventDefault()
+            if rscode_buffer_count == 0 or rscode_pointer == rscode_buffer_count:
+                code_in.value = ""
+                setRuler()
+            else:
+                rscode_pointer = rscode_pointer + 1
+                if rscode_pointer == rscode_buffer_count:
+                    code_in.value = ""
+                    setRuler()
+                else:
+                    code_in.value = document.getElementById('rsb'+rscode_pointer).innerHTML
+                    setTimeout(moveTo0,0)
+        
 
 
 #**********************************************************************/
