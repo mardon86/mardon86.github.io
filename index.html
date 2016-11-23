@@ -1,6 +1,8 @@
 <!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='initial-scale=1.0, maximum-scale=1.0, user-scalable=no'><style>
 /**************************** CSS *************************************/
 
+
+
 html,body {
     height: 100%;
     margin: 0px;
@@ -27,7 +29,8 @@ textarea {
     font-family: monospace;
     background-color:black;
     resize: none;
-    border-type: solid;
+    overflow: auto;
+    border-style: solid;
     border-width: 1px 0px 1px 0px;
     border-color: white;
     margin: 0px;
@@ -50,8 +53,65 @@ textarea:focus {
 }
 
 
+
 /**********************************************************************/
-</style><script src='rapydscript-0.5.35.min.js'></script><script src='format.js'></script></head><body>
+</style><script src='rsvp.min.js'></script><script>
+/************************** JAVASCRIPT ********************************/
+
+
+
+var require_script = function (the_script, scriptloadedcallback) {
+    
+    if (localStorage && localStorage.getItem('cached-' + the_script)) {
+        
+        var cs = localStorage.getItem('cached-' + the_script);
+        var cs_tag = document.createElement("SCRIPT");
+        cs_tag.id = the_script
+        cs_tag.defer = true;
+        cs_tag.text = cs;
+        document.head.appendChild(cs_tag);
+        if (scriptloadedcallback) {
+            scriptloadedcallback();
+        }
+        
+    } else {
+        
+        //alert("fetching..");
+        
+        var promise_script = function (the_script, callback) {
+            var getScript = new RSVP.Promise(function (resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        resolve(xhr.responseText);
+                    }
+                }
+                xhr.open("GET", the_script);
+                xhr.send();
+            });
+            getScript.then(callback);
+        }
+        
+        promise_script(the_script, function (fromResolve) {
+            var cs_tag = document.createElement("SCRIPT");
+            cs_tag.id = the_script
+            cs_tag.defer = true;
+            cs_tag.text = fromResolve;
+            document.head.appendChild(cs_tag);
+            if (scriptloadedcallback) {
+                scriptloadedcallback();
+            }
+            localStorage.setItem('cached-' + the_script, fromResolve);
+        });
+        
+    }
+
+}
+
+
+
+/**********************************************************************/
+</script></head><body>
 <!--************************* HTML **********************************-->
 
 
@@ -59,7 +119,8 @@ textarea:focus {
 <div id='container'>
     <div id='out_container'><textarea id='out' readonly></textarea></div>
     <div id='in_container'>
-        <textarea id='ruler' readonly>>>> </textarea>
+        <textarea id='ruler' readonly>>>> 
+</textarea>
         <textarea id='in'></textarea>
     </div>
 </div>
@@ -73,6 +134,9 @@ textarea:focus {
 
 
 
+RapydScript_version = document.querySelectorAll('script[id^="rapydscript"]')[0].id.replace("rapydscript-", "")
+
+
 code_in = document.getElementById('in')
 code_out = document.getElementById('out')
 ruler = document.getElementById('ruler')
@@ -80,17 +144,33 @@ buffer = document.getElementById('buffer')
 
 
 intro = def():
-    code_out.value = "RapydScript 0.5.35 REPL (default, " + (new Date).toString() + ")\n" +\
-    "[" + window.clientInformation.userAgent + "] on " + window.clientInformation.platform + "\n" +\
-    "Type \"ih()\" or \"dh()\" to increase or decrease body height.\n" +\
-    "Type \"ifz()\" or \"dfz()\" to increase or decrease font size.\n" +\
-    "Type \"intro()\" to print this message. Type \"cls()\" to clear screen."
+    setTimeout(def():
+        code_out.value = "RapydScript " + RapydScript_version + " REPL, " + (new Date).toString() + "\n" +\
+        "[" + window.clientInformation.userAgent + "] " + "\n" +\
+        "Type \"help()\" for more information.\n"
+    ,0)
 
-setTimeout(intro,0)
+intro()
+setTimeout(def():
+    code_out.value = code_out.value + ">>> "
+,0)
+
+help = def():
+    setTimeout(def():
+        code_out.value = code_out.value + "Type \"ih(n)\" or \"dh(n)\" to increase or decrease body height, where n is a number representing amount of percent. Default to 5.\n" +\
+        "Type \"ifz(n)\" or \"dfz(n)\" to increase or decrease font size, where n is a number representing amount of pt. Default to 1.\n" +\
+        "Type \"tc(c)\" to change text color, where c is a string representing CSS color. Default to 'white'\n" +\
+        "Type \"bc(c)\" to change background color, where c is a string representing CSS color. Default to 'black'\n" +\
+        "Type \"cls()\" to clear screen.\n" +\
+        "Type \"intro()\" to clear screen and print the intro.\n" +\
+        "Type \"help()\" to print this message.\n"
+    ,0)
 
 ՐՏ_print = def(t):
-    code_out.value = code_out.value + t.toString() + '\n'
-
+    setTimeout(def():
+        nonlocal t
+        code_out.value = code_out.value + t.toString() + '\n'
+    ,0)
 
 cls = def():
     setTimeout(def():
@@ -127,6 +207,18 @@ dfz = def(n=1):
         i.style.fontSize = (parseInt(i.style.fontSize) - n).toString() + 'pt'
 
 
+tc = def(c='white'):
+    ta = document.getElementsByTagName('TEXTAREA')
+    for i in ta:
+        i.style.color = c
+
+
+bc = def(c='black'):
+    ta = document.getElementsByTagName('TEXTAREA')
+    for i in ta:
+        i.style.backgroundColor = c
+
+
 rscode_buffer_count = 0
 rscode_pointer = 0
 
@@ -143,13 +235,16 @@ def exec():
     rscode_buffer_count += 1
     rscode_pointer = rscode_buffer_count + 0
     
-    code_out_text= rs_compile('__code_in__', code_in_text).replace("var __name__ = \"__main__\";\n","")
+    code_out_text= rapydscript.compile(code_in_text, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
     s = document.createElement("script")
     s.innerHTML = code_out_text
     buffer.appendChild(s)
-    ruler.value = '>>>\n'
-    code_in.value = ''
-    code_out.value = code_out.value + '\n-------------------------------------\n'
+    code_out.value = code_out.value[0:-4] + fusion(ruler.value, code_in.value) + '\n'
+    setTimeout(def():
+        ruler.value = '>>> \n'
+        code_in.value = ''
+        code_out.value = code_out.value + '>>> '
+    ,5)
 
 
 def getNewLinePosition():
@@ -170,9 +265,9 @@ def getNewLinePosition():
 
 def setRuler():
     line_count = getNewLinePosition().length
-    ruler_text = ">>>\n"
+    ruler_text = ">>> \n"
     for i in range(line_count - 1):
-        ruler_text = ruler_text + '...\n'
+        ruler_text = ruler_text + '... \n'
     ruler.value = ruler_text
 
 
@@ -182,18 +277,30 @@ def moveTo0():
     setRuler()
 
 
+def fusion(left, right):
+    leftl = left.split('\n')
+    rightl = right.split('\n')
+    outputl = []
+    for i in range(len(rightl)-1):
+        outputl.push(leftl[i] + rightl[i])
+    return outputl.join('\n')
+
+
 code_in.onkeydown = def(ev):
     nonlocal rscode_buffer_count
     nonlocal rscode_pointer
+
     if ev.which == 13:    
         if code_in.value[-1] == '\n':
             ev.preventDefault()
             exec()
         else:
-            ruler.value = ruler.value + "...\n"
+            ruler.value = ruler.value + "... \n"
+
     elif ev.which == 8:
         if code_in.value[-1] == '\n':
-            ruler.value = ruler.value[0:ruler.value.length-4]
+            ruler.value = ruler.value[0:ruler.value.length-5]
+
     elif ev.which == 38:
         if ev.target.selectionStart <= getNewLinePosition()[0]:
             ev.preventDefault()
@@ -207,6 +314,7 @@ code_in.onkeydown = def(ev):
                 rscode_pointer = rscode_pointer - 1
                 code_in.value = document.getElementById('rsb'+rscode_pointer).innerHTML
                 setTimeout(moveTo0,0)
+
     elif ev.which == 40:
         nl_poss = getNewLinePosition()
         if nl_poss.length < 2 or ev.target.selectionStart > nl_poss[-2]:
@@ -226,4 +334,4 @@ code_in.onkeydown = def(ev):
 
 
 #**********************************************************************/
-</script><script id='rs_out'></script><script>document.getElementById('rs_out').innerHTML = rs_compile('__main__', document.getElementById('rs_code').innerHTML);</script></body></html>
+</script><script id='rs_out'></script><script>require_script('rapydscript-0.5.53.js', function() { document.getElementById('rs_out').innerHTML = rapydscript.compile(document.getElementById('rs_code').innerHTML, {private_scope: false, beautify: true}); }); </script></body></html>
