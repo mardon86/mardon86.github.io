@@ -121,7 +121,7 @@ var require_script = function (the_script, scriptloadedcallback) {
     <div id='in_container'>
         <textarea id='ruler' readonly>>>> 
 </textarea>
-        <textarea id='in'></textarea>
+        <textarea id='in' autofocus></textarea>
     </div>
 </div>
 
@@ -129,7 +129,7 @@ var require_script = function (the_script, scriptloadedcallback) {
 
 
 <!--*****************************************************************-->
-<div id='buffer'></div><div id='rscode_buffer'></div><script id='rs_code' type='text/python'>
+<div id='buffer'></div><script id='rs_code' type='text/python'>
 #************************** RAPYDSCRIPT *******************************/
 
 
@@ -163,6 +163,7 @@ help = def():
         "Type \"bc(c)\" to change background color, where c is a string representing CSS color. Default to 'black'\n" +\
         "Type \"cls()\" to clear screen.\n" +\
         "Type \"intro()\" to clear screen and print the intro.\n" +\
+        "Type \"print(js_out(-1))\" to see the js output of the last rapydscript code entered.\n" +\
         "Type \"help()\" to print this message.\n"
     ,0)
 
@@ -186,54 +187,53 @@ ta = document.getElementsByTagName('TEXTAREA')
 for i in ta:
     i.style.fontSize = '10pt'
 
-
 dh = def(n=5):
     document.body.style.height = (parseInt(document.body.style.height) - n).toString() + '%'
 
-
 ih = def(n=5):
     document.body.style.height = (parseInt(document.body.style.height) + n).toString() + '%'
-
 
 ifz = def(n=1):
     ta = document.getElementsByTagName('TEXTAREA')
     for i in ta:
         i.style.fontSize = (parseInt(i.style.fontSize) + n).toString() + 'pt'
 
-
 dfz = def(n=1):
     ta = document.getElementsByTagName('TEXTAREA')
     for i in ta:
         i.style.fontSize = (parseInt(i.style.fontSize) - n).toString() + 'pt'
-
 
 tc = def(c='white'):
     ta = document.getElementsByTagName('TEXTAREA')
     for i in ta:
         i.style.color = c
 
-
 bc = def(c='black'):
     ta = document.getElementsByTagName('TEXTAREA')
     for i in ta:
         i.style.backgroundColor = c
 
+js_out = def(c=-1):
+    if type(c) == 'Number':
+        if c < 0:
+            rs = rscode_buffer_list[rscode_buffer_list.length + (c - 1)]
+        else:
+            rs = rscode_buffer_list[c]
+    elif type(c) == 'String':
+        rs = c
+    jso = rapydscript.compile(rs, {omit_baselib: true, private_scope: false, beautify: true}).replace('\nvar __name__ = "__main__";\n','')
+    return jso
 
-rscode_buffer_count = 0
-rscode_pointer = 0
+
+rscode_buffer_list = []
+rscode_buffer_pointer = 0
 
 
 def exec():
-    nonlocal rscode_buffer_count
-    nonlocal rscode_pointer
+    nonlocal rscode_buffer_pointer
     code_in_text = code_in.value
-    rs = document.createElement("script")
-    rs.type = 'text/python'
-    rs.id = 'rsb' + rscode_buffer_count
-    rs.innerHTML = code_in_text
-    rscode_buffer.appendChild(rs)
-    rscode_buffer_count += 1
-    rscode_pointer = rscode_buffer_count + 0
+    rscode_buffer_list.push(code_in_text)
+    rscode_buffer_pointer = rscode_buffer_list.length + 0
     
     code_out_text= rapydscript.compile(code_in_text, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
     s = document.createElement("script")
@@ -248,7 +248,6 @@ def exec():
 
 
 def getNewLinePosition():
-    nonlocal code_in
     len_code = code_in.value.length
     br_line = code_in.value.split('\n')
     list_nl = []
@@ -287,8 +286,7 @@ def fusion(left, right):
 
 
 code_in.onkeydown = def(ev):
-    nonlocal rscode_buffer_count
-    nonlocal rscode_pointer
+    nonlocal rscode_buffer_pointer
 
     if ev.which == 13:    
         if code_in.value[-1] == '\n':
@@ -297,38 +295,37 @@ code_in.onkeydown = def(ev):
         else:
             ruler.value = ruler.value + "... \n"
 
-    elif ev.which == 8:
-        if code_in.value[-1] == '\n':
-            ruler.value = ruler.value[0:ruler.value.length-5]
+    elif ev.which == 8 or ev.which == 46:
+        setRuler()
 
     elif ev.which == 38:
         if ev.target.selectionStart <= getNewLinePosition()[0]:
             ev.preventDefault()
-            if rscode_pointer == 0:
-                if rscode_buffer_count == 0:
+            if rscode_buffer_pointer == 0:
+                if rscode_buffer_list.length == 0:
                     pass
                 else:
-                    code_in.value = document.getElementById('rsb'+rscode_pointer).innerHTML
+                    code_in.value = rscode_buffer_list[rscode_buffer_pointer]
                     setTimeout(moveTo0,0)
             else:
-                rscode_pointer = rscode_pointer - 1
-                code_in.value = document.getElementById('rsb'+rscode_pointer).innerHTML
+                rscode_buffer_pointer = rscode_buffer_pointer - 1
+                code_in.value = rscode_buffer_list[rscode_buffer_pointer]
                 setTimeout(moveTo0,0)
 
     elif ev.which == 40:
         nl_poss = getNewLinePosition()
         if nl_poss.length < 2 or ev.target.selectionStart > nl_poss[-2]:
             ev.preventDefault()
-            if rscode_buffer_count == 0 or rscode_pointer == rscode_buffer_count:
+            if rscode_buffer_list.length == 0 or rscode_buffer_pointer == rscode_buffer_list.length:
                 code_in.value = ""
                 setRuler()
             else:
-                rscode_pointer = rscode_pointer + 1
-                if rscode_pointer == rscode_buffer_count:
+                rscode_buffer_pointer = rscode_buffer_pointer + 1
+                if rscode_buffer_pointer == rscode_buffer_list.length:
                     code_in.value = ""
                     setRuler()
                 else:
-                    code_in.value = document.getElementById('rsb'+rscode_pointer).innerHTML
+                    code_in.value = rscode_buffer_list[rscode_buffer_pointer]
                     setTimeout(moveTo0,0)
         
 
