@@ -1,0 +1,337 @@
+<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='initial-scale=1.0, maximum-scale=1.0, user-scalable=no'><style>
+/**************************** CSS *************************************/
+
+
+
+html,body {
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+
+#container {
+    height: 100%;
+    //border:solid red 1px;
+    display:flex;
+    flex-direction:column;
+}
+
+#out_container, #in_container {
+    width: 100%;
+    display:flex;
+    flex-direction:row;
+}
+
+
+
+textarea {
+    color:white;
+    font-family: monospace;
+    background-color:black;
+    resize: none;
+    overflow: auto;
+    border-style: solid;
+    border-width: 1px 0px 1px 0px;
+    border-color: white;
+    margin: 0px;
+}
+
+textarea:focus {
+    outline:none;
+}
+
+#ruler {
+    width: 4.5ex;
+}
+
+#out_container {
+    flex-grow:3;
+}
+
+#in_container, #in, #out {
+    flex-grow:1;
+}
+
+
+
+/**********************************************************************/
+</style><script src='rsvp.min.js'></script><script>
+/************************** JAVASCRIPT ********************************/
+
+
+
+var require_script = function (the_script, scriptloadedcallback) {
+    
+    if (localStorage && localStorage.getItem('cached-' + the_script)) {
+        
+        var cs = localStorage.getItem('cached-' + the_script);
+        var cs_tag = document.createElement("SCRIPT");
+        cs_tag.id = the_script
+        cs_tag.defer = true;
+        cs_tag.text = cs;
+        document.head.appendChild(cs_tag);
+        if (scriptloadedcallback) {
+            scriptloadedcallback();
+        }
+        
+    } else {
+        
+        //alert("fetching..");
+        
+        var promise_script = function (the_script, callback) {
+            var getScript = new RSVP.Promise(function (resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        resolve(xhr.responseText);
+                    }
+                }
+                xhr.open("GET", the_script);
+                xhr.send();
+            });
+            getScript.then(callback);
+        }
+        
+        promise_script(the_script, function (fromResolve) {
+            var cs_tag = document.createElement("SCRIPT");
+            cs_tag.id = the_script
+            cs_tag.defer = true;
+            cs_tag.text = fromResolve;
+            document.head.appendChild(cs_tag);
+            if (scriptloadedcallback) {
+                scriptloadedcallback();
+            }
+            localStorage.setItem('cached-' + the_script, fromResolve);
+        });
+        
+    }
+
+}
+
+
+
+/**********************************************************************/
+</script></head><body>
+<!--************************* HTML **********************************-->
+
+
+
+<div id='container'>
+    <div id='out_container'><textarea id='out' readonly></textarea></div>
+    <div id='in_container'>
+        <textarea id='ruler' readonly>>>> 
+</textarea>
+        <textarea id='in'></textarea>
+    </div>
+</div>
+
+
+
+
+<!--*****************************************************************-->
+<div id='buffer'></div><div id='rscode_buffer'></div><script id='rs_code' type='text/python'>
+#************************** RAPYDSCRIPT *******************************/
+
+
+
+RapydScript_version = document.querySelectorAll('script[id^="rapydscript"]')[0].id.replace(/^rapydscript-|\.js$/g, "")
+
+
+code_in = document.getElementById('in')
+code_out = document.getElementById('out')
+ruler = document.getElementById('ruler')
+buffer = document.getElementById('buffer')
+
+
+intro = def():
+    setTimeout(def():
+        code_out.value = "RapydScript " + RapydScript_version + " REPL, " + (new Date).toString() + "\n" +\
+        "[" + window.clientInformation.userAgent + "] " + "\n" +\
+        "Type \"help()\" for more information.\n"
+    ,0)
+
+intro()
+setTimeout(def():
+    code_out.value = code_out.value + ">>> "
+,0)
+
+help = def():
+    setTimeout(def():
+        code_out.value = code_out.value + "Type \"ih(n)\" or \"dh(n)\" to increase or decrease body height, where n is a number representing amount of percent. Default to 5.\n" +\
+        "Type \"ifz(n)\" or \"dfz(n)\" to increase or decrease font size, where n is a number representing amount of pt. Default to 1.\n" +\
+        "Type \"tc(c)\" to change text color, where c is a string representing CSS color. Default to 'white'\n" +\
+        "Type \"bc(c)\" to change background color, where c is a string representing CSS color. Default to 'black'\n" +\
+        "Type \"cls()\" to clear screen.\n" +\
+        "Type \"intro()\" to clear screen and print the intro.\n" +\
+        "Type \"help()\" to print this message.\n"
+    ,0)
+
+ՐՏ_print = def(t):
+    setTimeout(def():
+        nonlocal t
+        code_out.value = code_out.value + t.toString() + '\n'
+    ,0)
+
+cls = def():
+    setTimeout(def():
+        code_out.value = ''
+        code_in.value = ''
+        setRuler()
+    ,0)
+
+
+document.body.style.height = '100%'
+
+ta = document.getElementsByTagName('TEXTAREA')
+for i in ta:
+    i.style.fontSize = '10pt'
+
+
+dh = def(n=5):
+    document.body.style.height = (parseInt(document.body.style.height) - n).toString() + '%'
+
+
+ih = def(n=5):
+    document.body.style.height = (parseInt(document.body.style.height) + n).toString() + '%'
+
+
+ifz = def(n=1):
+    ta = document.getElementsByTagName('TEXTAREA')
+    for i in ta:
+        i.style.fontSize = (parseInt(i.style.fontSize) + n).toString() + 'pt'
+
+
+dfz = def(n=1):
+    ta = document.getElementsByTagName('TEXTAREA')
+    for i in ta:
+        i.style.fontSize = (parseInt(i.style.fontSize) - n).toString() + 'pt'
+
+
+tc = def(c='white'):
+    ta = document.getElementsByTagName('TEXTAREA')
+    for i in ta:
+        i.style.color = c
+
+
+bc = def(c='black'):
+    ta = document.getElementsByTagName('TEXTAREA')
+    for i in ta:
+        i.style.backgroundColor = c
+
+
+rscode_buffer_count = 0
+rscode_pointer = 0
+
+
+def exec():
+    nonlocal rscode_buffer_count
+    nonlocal rscode_pointer
+    code_in_text = code_in.value
+    rs = document.createElement("script")
+    rs.type = 'text/python'
+    rs.id = 'rsb' + rscode_buffer_count
+    rs.innerHTML = code_in_text
+    rscode_buffer.appendChild(rs)
+    rscode_buffer_count += 1
+    rscode_pointer = rscode_buffer_count + 0
+    
+    code_out_text= rapydscript.compile(code_in_text, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
+    s = document.createElement("script")
+    s.innerHTML = code_out_text
+    buffer.appendChild(s)
+    code_out.value = code_out.value[0:-4] + fusion(ruler.value, code_in.value) + '\n'
+    setTimeout(def():
+        ruler.value = '>>> \n'
+        code_in.value = ''
+        code_out.value = code_out.value + '>>> '
+    ,5)
+
+
+def getNewLinePosition():
+    nonlocal code_in
+    len_code = code_in.value.length
+    br_line = code_in.value.split('\n')
+    list_nl = []
+    for i in br_line:
+        if list_nl.length == 0:
+            list_nl.push(i.length)
+        else:
+            list_nl.push(list_nl[-1] + 1 + i.length)
+    if list_nl.length == 0:
+        return [0]
+    else:
+        return list_nl
+
+
+def setRuler():
+    line_count = getNewLinePosition().length
+    ruler_text = ">>> \n"
+    for i in range(line_count - 1):
+        ruler_text = ruler_text + '... \n'
+    ruler.value = ruler_text
+
+
+def moveTo0():
+    code_in.selectionStart = 0
+    code_in.selectionEnd = 0
+    setRuler()
+
+
+def fusion(left, right):
+    leftl = left.split('\n')
+    rightl = right.split('\n')
+    outputl = []
+    for i in range(len(rightl)-1):
+        outputl.push(leftl[i] + rightl[i])
+    return outputl.join('\n')
+
+
+code_in.onkeydown = def(ev):
+    nonlocal rscode_buffer_count
+    nonlocal rscode_pointer
+
+    if ev.which == 13:    
+        if code_in.value[-1] == '\n':
+            ev.preventDefault()
+            exec()
+        else:
+            ruler.value = ruler.value + "... \n"
+
+    elif ev.which == 8:
+        if code_in.value[-1] == '\n':
+            ruler.value = ruler.value[0:ruler.value.length-5]
+
+    elif ev.which == 38:
+        if ev.target.selectionStart <= getNewLinePosition()[0]:
+            ev.preventDefault()
+            if rscode_pointer == 0:
+                if rscode_buffer_count == 0:
+                    pass
+                else:
+                    code_in.value = document.getElementById('rsb'+rscode_pointer).innerHTML
+                    setTimeout(moveTo0,0)
+            else:
+                rscode_pointer = rscode_pointer - 1
+                code_in.value = document.getElementById('rsb'+rscode_pointer).innerHTML
+                setTimeout(moveTo0,0)
+
+    elif ev.which == 40:
+        nl_poss = getNewLinePosition()
+        if nl_poss.length < 2 or ev.target.selectionStart > nl_poss[-2]:
+            ev.preventDefault()
+            if rscode_buffer_count == 0 or rscode_pointer == rscode_buffer_count:
+                code_in.value = ""
+                setRuler()
+            else:
+                rscode_pointer = rscode_pointer + 1
+                if rscode_pointer == rscode_buffer_count:
+                    code_in.value = ""
+                    setRuler()
+                else:
+                    code_in.value = document.getElementById('rsb'+rscode_pointer).innerHTML
+                    setTimeout(moveTo0,0)
+        
+
+
+#**********************************************************************/
+</script><script id='rs_out'></script><script>require_script('rapydscript-0.5.53.js', function() { document.getElementById('rs_out').innerHTML = rapydscript.compile(document.getElementById('rs_code').innerHTML, {private_scope: false, beautify: true}); }); </script></body></html>
