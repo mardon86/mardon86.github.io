@@ -134,7 +134,7 @@ var require_script = function (the_script, scriptloadedcallback) {
 
 
 
-RapydScript_version = document.querySelectorAll('script[id^="rapydscript"]')[0].id.replace("rapydscript-", "")
+RapydScript_version = document.querySelectorAll('script[id^="rapydscript"]')[0].id.replace(/^rapydscript-|\.js$/g, "")
 
 
 code_in = document.getElementById('in')
