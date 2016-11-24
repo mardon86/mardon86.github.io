@@ -151,7 +151,7 @@ code_in.onscroll = def(ev):
 intro = def():
     setTimeout(def():
         code_out.value = "RapydScript " + RapydScript_version + " REPL, " + (new Date).toString() + "\n" +\
-        "[" + window.clientInformation.userAgent + "] " + "\n" +\
+        "[" + window.navigator.userAgent + "] " + "\n" +\
         "Type \"help()\" for more information.\n"
     ,0)
 
