@@ -42,6 +42,7 @@ textarea:focus {
 
 #ruler {
     width: 4.5ex;
+    overflow: hidden;
 }
 
 #out_container {
@@ -141,6 +142,10 @@ code_in = document.getElementById('in')
 code_out = document.getElementById('out')
 ruler = document.getElementById('ruler')
 buffer = document.getElementById('buffer')
+
+
+code_in.onscroll = def(ev):
+    ruler.scrollTop = ev.target.scrollTop
 
 
 intro = def():
