@@ -173,10 +173,7 @@ help = def():
     ,0)
 
 ՐՏ_print = def(t):
-    setTimeout(def():
-        nonlocal t
-        code_out.value = code_out.value + t.toString() + '\n'
-    ,0)
+    code_out.value = code_out.value + t.toString() + '\n'
 
 cls = def():
     setTimeout(def():
@@ -243,13 +240,11 @@ def exec():
     code_out_text= rapydscript.compile(code_in_text, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
     s = document.createElement("script")
     s.innerHTML = code_out_text
-    buffer.appendChild(s)
     code_out.value = code_out.value[0:-4] + fusion(ruler.value, code_in.value) + '\n'
-    setTimeout(def():
-        ruler.value = '>>> \n'
-        code_in.value = ''
-        code_out.value = code_out.value + '>>> '
-    ,5)
+    ruler.value = '>>> \n'
+    code_in.value = ''
+    buffer.appendChild(s)
+    code_out.value = code_out.value + '>>> '
 
 
 def getNewLinePosition():
