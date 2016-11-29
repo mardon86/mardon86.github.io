@@ -141,17 +141,11 @@ RapydScript_version = document.querySelectorAll('script[id^="rapydscript"]')[0].
 
 
 
-class Helper:
+class ՐՏ_HelperFunctions:
 
-    def __init__(self):
-        self.code_in = document.getElementById('in')
-        self.code_out = document.getElementById('out')
-        self.ruler = document.getElementById('ruler')
-        self.buffer = document.getElementById('buffer')
-        self.code_area = [self.code_in, self.code_out, self.ruler]
-
-
-    def initialize(self):
+    def __init__(self, repl):
+        self.repl = repl
+        self.code_area = [self.repl.code_in, self.repl.code_out, self.repl.ruler]
         document.body.style.height = '100%'
         for i in self.code_area:
             i.style.fontSize = '10pt'
@@ -168,36 +162,14 @@ class Helper:
         window.js_out = self.js_out.bind(self)
 
 
-    def getNewLinePosition(self):
-        br_line = self.code_in.value.split('\n')
-        list_nl = []
-        for i in br_line:
-            if list_nl.length == 0:
-                list_nl.push(i.length)
-            else:
-                list_nl.push(list_nl[-1] + 1 + i.length)
-        if list_nl.length == 0:
-            return [0]
-        else:
-            return list_nl
-
-
-    def setRuler(self):
-        line_count = self.getNewLinePosition().length
-        ruler_text = ">>> \n"
-        for i in range(line_count - 1):
-            ruler_text = ruler_text + '... \n'
-        self.ruler.value = ruler_text
-
-
     def intro(self):
-        self.code_out.value = "RapydScript " + RapydScript_version + " REPL, " + (new Date).toString() + "\n" +\
+        self.repl.code_out.value = "RapydScript " + RapydScript_version + " REPL, " + (new Date).toString() + "\n" +\
         "[" + window.navigator.userAgent + "] " + "\n" +\
         "Type \"help()\" for more information.\n"
 
 
     def help(self):
-        self.code_out.value = self.code_out.value + "Type \"ih(n)\" or \"dh(n)\" to increase or decrease body height, where n is a number representing amount of percent. Default to 5.\n" +\
+        self.repl.code_out.value = self.repl.code_out.value + "Type \"ih(n)\" or \"dh(n)\" to increase or decrease body height, where n is a number representing amount of percent. Default to 5.\n" +\
         "Type \"ifz(n)\" or \"dfz(n)\" to increase or decrease font size, where n is a number representing amount of pt. Default to 1.\n" +\
         "Type \"tc(c)\" to change text color, where c is a string representing CSS color. Default to 'white'\n" +\
         "Type \"bc(c)\" to change background color, where c is a string representing CSS color. Default to 'black'\n" +\
@@ -208,13 +180,13 @@ class Helper:
 
 
     def print(self, t):
-        self.code_out.value = self.code_out.value + t.toString() + '\n'
+        self.repl.code_out.value = self.repl.code_out.value + t.toString() + '\n'
 
 
     def cls(self):
-        self.code_out.value = ''
-        self.code_in.value = ''
-        self.setRuler()
+        self.repl.code_out.value = ''
+        self.repl.code_in.value = ''
+        self.repl.setRuler()
 
 
     def dh(self, n=5):
@@ -248,9 +220,9 @@ class Helper:
     def js_out(self, c=-1):
         if type(c) == 'Number':
             if c < 0:
-                rs = rscode_buffer_list[rscode_buffer_list.length + (c - 1)]
+                rs = repl.buffer_list[repl.buffer_list.length + (c - 1)]
             else:
-                rs = rscode_buffer_list[c]
+                rs = repl.buffer_list[c]
         elif type(c) == 'String':
             rs = c
         jso = rapydscript.compile(rs, {omit_baselib: true, private_scope: false, beautify: true}).replace('\nvar __name__ = "__main__";\n','')
@@ -259,7 +231,7 @@ class Helper:
 
 
 
-class CodeInTextArea:
+class ՐՏ_Repl:
 
     def __init__(self):
         self.code_in = document.getElementById('in')
@@ -288,6 +260,8 @@ class CodeInTextArea:
 
         intro()
         self.code_out.value = self.code_out.value + '>>> '
+
+        ՐՏ_HelperFunctions(self)
 
 
     def onEnterCallback(self, ev):
@@ -433,11 +407,7 @@ class CodeInTextArea:
 
 
 
-helper = Helper()
-helper.initialize()
-
-rs_repl = CodeInTextArea()
-rs_repl.initialize()
+ՐՏ_Repl().initialize()
 
 
 
