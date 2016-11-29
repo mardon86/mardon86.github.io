@@ -56,7 +56,7 @@ textarea:focus {
 
 
 /**********************************************************************/
-</style><script src='rsvp.min.js'></script><script>
+</style><script src='rsvp.min.js'></script><script src='rapydscript-0.5.53.js'></script><script>
 /************************** JAVASCRIPT ********************************/
 
 
@@ -135,8 +135,8 @@ var require_script = function (the_script, scriptloadedcallback) {
 
 
 
-RapydScript_version = document.querySelectorAll('script[id^="rapydscript"]')[0].id.replace(/^rapydscript-|\.js$/g, "")
-#RapydScript_version = '0.5.53'
+#RapydScript_version = document.querySelectorAll('script[id^="rapydscript"]')[0].id.replace(/^rapydscript-|\.js$/g, "")
+RapydScript_version = '0.5.53'
 
 
 
@@ -220,9 +220,9 @@ class ՐՏ_HelperFunctions:
     def js_out(self, c=-1):
         if type(c) == 'Number':
             if c < 0:
-                rs = repl.buffer_list[repl.buffer_list.length + (c - 1)]
+                rs = self.repl.buffer_list[self.repl.buffer_list.length + (c - 1)]
             else:
-                rs = repl.buffer_list[c]
+                rs = self.repl.buffer_list[c]
         elif type(c) == 'String':
             rs = c
         jso = rapydscript.compile(rs, {omit_baselib: true, private_scope: false, beautify: true}).replace('\nvar __name__ = "__main__";\n','')
@@ -238,11 +238,13 @@ class ՐՏ_Repl:
         self.ruler = document.getElementById('ruler')
         self.code_out = document.getElementById('out')
         self.buffer = document.getElementById('buffer')
+        self.buffer_list = []
+        self.buffer_pointer = 0
+
+        ՐՏ_HelperFunctions(self)
         
 
     def initialize(self):
-        self.buffer_list = []
-        self.buffer_pointer = 0
         self.code_in.onkeydown = def(ev):
             if ev.which == 13:
                 self.onEnterCallback.bind(self)(ev)
@@ -260,8 +262,6 @@ class ՐՏ_Repl:
 
         intro()
         self.code_out.value = self.code_out.value + '>>> '
-
-        ՐՏ_HelperFunctions(self)
 
 
     def onEnterCallback(self, ev):
@@ -407,8 +407,8 @@ class ՐՏ_Repl:
 
 
 
-ՐՏ_repl = ՐՏ_Repl()
-ՐՏ_repl.initialize.bind(ՐՏ_repl)()
+rs_repl = ՐՏ_Repl()
+rs_repl.initialize()
 
 
 
@@ -417,7 +417,7 @@ class ՐՏ_Repl:
 </script><script id='rs_out'></script><script>
     
     var compile_rs_code = function() { document.getElementById('rs_out').innerHTML = rapydscript.compile(document.getElementById('rs_code').innerHTML, {private_scope: false, beautify: true}); }
-    require_script('rapydscript-0.5.53.js', compile_rs_code);
-    //compile_rs_code();
+    //require_script('rapydscript-0.5.53.js', compile_rs_code);
+    compile_rs_code();
 
 </script></body></html>
