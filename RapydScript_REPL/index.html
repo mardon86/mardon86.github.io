@@ -41,7 +41,7 @@ textarea:focus {
 }
 
 #ruler {
-    width: 4.5ex;
+    width: 4ch;
     overflow: hidden;
 }
 
@@ -136,33 +136,68 @@ var require_script = function (the_script, scriptloadedcallback) {
 
 
 RapydScript_version = document.querySelectorAll('script[id^="rapydscript"]')[0].id.replace(/^rapydscript-|\.js$/g, "")
+#RapydScript_version = '0.5.53'
 
 
-code_in = document.getElementById('in')
-code_out = document.getElementById('out')
-ruler = document.getElementById('ruler')
-buffer = document.getElementById('buffer')
 
 
-code_in.onscroll = def(ev):
-    ruler.scrollTop = ev.target.scrollTop
+class Helper:
+
+    def __init__(self):
+        self.code_in = document.getElementById('in')
+        self.code_out = document.getElementById('out')
+        self.ruler = document.getElementById('ruler')
+        self.buffer = document.getElementById('buffer')
+        self.code_area = [self.code_in, self.code_out, self.ruler]
 
 
-intro = def():
-    setTimeout(def():
-        code_out.value = "RapydScript " + RapydScript_version + " REPL, " + (new Date).toString() + "\n" +\
+    def initialize(self):
+        document.body.style.height = '100%'
+        for i in self.code_area:
+            i.style.fontSize = '10pt'
+        window.intro = self.intro.bind(self)
+        window.help = self.help.bind(self)
+        window.ՐՏ_print = self.print.bind(self)
+        window.cls = self.cls.bind(self)
+        window.ih = self.ih.bind(self)
+        window.dh = self.dh.bind(self)
+        window.ifz = self.ifz.bind(self)
+        window.dfz = self.dfz.bind(self)
+        window.tc = self.tc.bind(self)
+        window.bc = self.bc.bind(self)
+        window.js_out = self.js_out.bind(self)
+
+
+    def getNewLinePosition(self):
+        br_line = self.code_in.value.split('\n')
+        list_nl = []
+        for i in br_line:
+            if list_nl.length == 0:
+                list_nl.push(i.length)
+            else:
+                list_nl.push(list_nl[-1] + 1 + i.length)
+        if list_nl.length == 0:
+            return [0]
+        else:
+            return list_nl
+
+
+    def setRuler(self):
+        line_count = self.getNewLinePosition().length
+        ruler_text = ">>> \n"
+        for i in range(line_count - 1):
+            ruler_text = ruler_text + '... \n'
+        self.ruler.value = ruler_text
+
+
+    def intro(self):
+        self.code_out.value = "RapydScript " + RapydScript_version + " REPL, " + (new Date).toString() + "\n" +\
         "[" + window.navigator.userAgent + "] " + "\n" +\
         "Type \"help()\" for more information.\n"
-    ,0)
 
-intro()
-setTimeout(def():
-    code_out.value = code_out.value + ">>> "
-,0)
 
-help = def():
-    setTimeout(def():
-        code_out.value = code_out.value + "Type \"ih(n)\" or \"dh(n)\" to increase or decrease body height, where n is a number representing amount of percent. Default to 5.\n" +\
+    def help(self):
+        self.code_out.value = self.code_out.value + "Type \"ih(n)\" or \"dh(n)\" to increase or decrease body height, where n is a number representing amount of percent. Default to 5.\n" +\
         "Type \"ifz(n)\" or \"dfz(n)\" to increase or decrease font size, where n is a number representing amount of pt. Default to 1.\n" +\
         "Type \"tc(c)\" to change text color, where c is a string representing CSS color. Default to 'white'\n" +\
         "Type \"bc(c)\" to change background color, where c is a string representing CSS color. Default to 'black'\n" +\
@@ -170,165 +205,248 @@ help = def():
         "Type \"intro()\" to clear screen and print the intro.\n" +\
         "Type \"print(js_out(-1))\" to see the js output of the last rapydscript code entered.\n" +\
         "Type \"help()\" to print this message.\n"
-    ,0)
-
-ՐՏ_print = def(t):
-    code_out.value = code_out.value + t.toString() + '\n'
-
-cls = def():
-    setTimeout(def():
-        code_out.value = ''
-        code_in.value = ''
-        setRuler()
-    ,0)
 
 
-document.body.style.height = '100%'
+    def print(self, t):
+        self.code_out.value = self.code_out.value + t.toString() + '\n'
 
-ta = document.getElementsByTagName('TEXTAREA')
-for i in ta:
-    i.style.fontSize = '10pt'
 
-dh = def(n=5):
-    document.body.style.height = (parseInt(document.body.style.height) - n).toString() + '%'
+    def cls(self):
+        self.code_out.value = ''
+        self.code_in.value = ''
+        self.setRuler()
 
-ih = def(n=5):
-    document.body.style.height = (parseInt(document.body.style.height) + n).toString() + '%'
 
-ifz = def(n=1):
-    ta = document.getElementsByTagName('TEXTAREA')
-    for i in ta:
-        i.style.fontSize = (parseInt(i.style.fontSize) + n).toString() + 'pt'
+    def dh(self, n=5):
+        document.body.style.height = (parseInt(document.body.style.height) - n).toString() + '%'
 
-dfz = def(n=1):
-    ta = document.getElementsByTagName('TEXTAREA')
-    for i in ta:
-        i.style.fontSize = (parseInt(i.style.fontSize) - n).toString() + 'pt'
 
-tc = def(c='white'):
-    ta = document.getElementsByTagName('TEXTAREA')
-    for i in ta:
-        i.style.color = c
+    def ih(self, n=5):
+        document.body.style.height = (parseInt(document.body.style.height) + n).toString() + '%'
 
-bc = def(c='black'):
-    ta = document.getElementsByTagName('TEXTAREA')
-    for i in ta:
-        i.style.backgroundColor = c
 
-js_out = def(c=-1):
-    if type(c) == 'Number':
-        if c < 0:
-            rs = rscode_buffer_list[rscode_buffer_list.length + (c - 1)]
+    def ifz(self, n=1):
+        for i in self.code_area:
+            i.style.fontSize = (parseInt(i.style.fontSize) + n).toString() + 'pt'
+
+
+    def dfz(self, n=1):
+        for i in self.code_area:
+            i.style.fontSize = (parseInt(i.style.fontSize) - n).toString() + 'pt'
+
+
+    def tc(self, c='white'):
+        for i in self.code_area:
+            i.style.color = c
+
+
+    def bc(self, c='black'):
+        for i in self.code_area:
+            i.style.backgroundColor = c
+
+
+    def js_out(self, c=-1):
+        if type(c) == 'Number':
+            if c < 0:
+                rs = rscode_buffer_list[rscode_buffer_list.length + (c - 1)]
+            else:
+                rs = rscode_buffer_list[c]
+        elif type(c) == 'String':
+            rs = c
+        jso = rapydscript.compile(rs, {omit_baselib: true, private_scope: false, beautify: true}).replace('\nvar __name__ = "__main__";\n','')
+        return jso
+
+
+
+
+class CodeInTextArea:
+
+    def __init__(self):
+        self.code_in = document.getElementById('in')
+        self.ruler = document.getElementById('ruler')
+        self.code_out = document.getElementById('out')
+        self.buffer = document.getElementById('buffer')
+        
+
+    def initialize(self):
+        self.buffer_list = []
+        self.buffer_pointer = 0
+        self.code_in.onkeydown = def(ev):
+            if ev.which == 13:
+                self.onEnterCallback.bind(self)(ev)
+            elif ev.which == 8:
+                self.onBackspaceCallback.bind(self)(ev)
+            elif ev.which == 46:
+                self.onDeleteCallback.bind(self)(ev)
+            elif ev.which == 38:
+                self.onUpArrowCallback.bind(self)(ev)
+            elif ev.which == 40:
+                self.onDownArrowCallback.bind(self)(ev)
+
+        self.code_in.onscroll = def(ev):
+            self.ruler.scrollTop = ev.target.scrollTop
+
+        intro()
+        self.code_out.value = self.code_out.value + '>>> '
+
+
+    def onEnterCallback(self, ev):
+        if self.code_in.value[-1] == '\n':
+            ev.preventDefault()
+            self.exec.bind(self)()
         else:
-            rs = rscode_buffer_list[c]
-    elif type(c) == 'String':
-        rs = c
-    jso = rapydscript.compile(rs, {omit_baselib: true, private_scope: false, beautify: true}).replace('\nvar __name__ = "__main__";\n','')
-    return jso
+            self.ruler.value = self.ruler.value + "... \n"
 
 
-rscode_buffer_list = []
-rscode_buffer_pointer = 0
+    def describe_array(self, arr):
+        res = '['
+        for i in arr:
+            if Object.prototype.toString.call(i) == '[object Number]':
+                res = res + ', ' + i
+            else if Object.prototype.toString.call(i) == '[object String]':
+                res = res + ', \'' + i + '\'' 
+            else if Object.prototype.toString.call(i) == '[object Boolean]':
+                res = res + ', ' + i
+            else:
+                res = res + ', ' + Object.prototype.toString.call(i)
+        return res.replace(/^\[\, /g, '[') + ']'
 
-
-def exec():
-    nonlocal rscode_buffer_pointer
-    code_in_text = code_in.value
-    rscode_buffer_list.push(code_in_text)
-    rscode_buffer_pointer = rscode_buffer_list.length + 0
     
-    code_out_text= rapydscript.compile(code_in_text, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
-    s = document.createElement("script")
-    s.innerHTML = code_out_text
-    code_out.value = code_out.value[0:-4] + fusion(ruler.value, code_in.value) + '\n'
-    ruler.value = '>>> \n'
-    code_in.value = ''
-    buffer.appendChild(s)
-    code_out.value = code_out.value + '>>> '
+    def exec(self):
+        code_in_text = self.code_in.value
+        self.buffer_list.push(code_in_text)
+        self.buffer_pointer = self.buffer_list.length + 0
+        self.code_out.value = self.code_out.value[0:-4] + self.fusion.bind(self)(self.ruler.value, self.code_in.value) + '\n'
+        self.ruler.value = '>>> \n'
+        self.code_in.value = ''
+
+        try:
+
+            code_out_text = rapydscript.compile(code_in_text, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
+            out_retval = (def (inp):
+                out_eval = eval.call(window, inp)
+                if Object.prototype.toString.call(out_eval) == '[object Number]':
+                    return out_eval
+                else if Object.prototype.toString.call(out_eval) == '[object String]':
+                    return out_eval
+                else if Object.prototype.toString.call(out_eval) == '[object Boolean]':
+                    return out_eval
+                else if Object.prototype.toString.call(out_eval) == '[object Date]':
+                    return out_eval
+                else if Object.prototype.toString.call(out_eval) == '[object RegExp]':
+                    return out_eval
+                else if Object.prototype.toString.call(out_eval) == '[object Array]':
+                    return self.describe_array.bind(self)(out_eval)
+                else if Object.prototype.toString.call(out_eval) == '[object Undefined]':
+                    return ''
+                else:
+                    return Object.prototype.toString.call(out_eval)
+            ).call(window, code_out_text.replace(/^\n|;$/g, ""))
+        
+            if out_retval == '':
+                pass
+            else:
+                print(out_retval)
+
+        except as err:
+            self.code_out.value = self.code_out.value + err.name + ': ' + err.message + '\n'
+
+        self.code_out.value = self.code_out.value + '>>> '
 
 
-def getNewLinePosition():
-    len_code = code_in.value.length
-    br_line = code_in.value.split('\n')
-    list_nl = []
-    for i in br_line:
+    def fusion(self, left, right):
+        leftl = left.split('\n')
+        rightl = right.split('\n')
+        outputl = []
+        for i in range(len(rightl)-1):
+            outputl.push(leftl[i] + rightl[i])
+        return outputl.join('\n')
+
+
+    def onBackspaceCallback(self, ev):
+        self.setRuler()
+
+
+    def onDeleteCallback(self, ev):
+        self.setRuler()
+
+
+    def setRuler(self):
+        line_count = self.getNewLinePosition().length
+        ruler_text = ">>> \n"
+        for i in range(line_count - 1):
+            ruler_text = ruler_text + '... \n'
+        self.ruler.value = ruler_text
+
+
+    def getNewLinePosition(self):
+        br_line = self.code_in.value.split('\n')
+        list_nl = []
+        for i in br_line:
+            if list_nl.length == 0:
+                list_nl.push(i.length)
+            else:
+                list_nl.push(list_nl[-1] + 1 + i.length)
         if list_nl.length == 0:
-            list_nl.push(i.length)
+            return [0]
         else:
-            list_nl.push(list_nl[-1] + 1 + i.length)
-    if list_nl.length == 0:
-        return [0]
-    else:
-        return list_nl
+            return list_nl
 
 
-def setRuler():
-    line_count = getNewLinePosition().length
-    ruler_text = ">>> \n"
-    for i in range(line_count - 1):
-        ruler_text = ruler_text + '... \n'
-    ruler.value = ruler_text
-
-
-def moveTo0():
-    code_in.selectionStart = 0
-    code_in.selectionEnd = 0
-    setRuler()
-
-
-def fusion(left, right):
-    leftl = left.split('\n')
-    rightl = right.split('\n')
-    outputl = []
-    for i in range(len(rightl)-1):
-        outputl.push(leftl[i] + rightl[i])
-    return outputl.join('\n')
-
-
-code_in.onkeydown = def(ev):
-    nonlocal rscode_buffer_pointer
-
-    if ev.which == 13:    
-        if code_in.value[-1] == '\n':
+    def onUpArrowCallback(self, ev):
+        if ev.target.selectionStart <= self.getNewLinePosition()[0]:
             ev.preventDefault()
-            exec()
-        else:
-            ruler.value = ruler.value + "... \n"
-
-    elif ev.which == 8 or ev.which == 46:
-        setRuler()
-
-    elif ev.which == 38:
-        if ev.target.selectionStart <= getNewLinePosition()[0]:
-            ev.preventDefault()
-            if rscode_buffer_pointer == 0:
-                if rscode_buffer_list.length == 0:
+            if self.buffer_pointer == 0:
+                if self.buffer_list.length == 0:
                     pass
                 else:
-                    code_in.value = rscode_buffer_list[rscode_buffer_pointer]
-                    setTimeout(moveTo0,0)
+                    self.code_in.value = self.buffer_list[self.buffer_pointer]
+                    setTimeout(self.moveTo0,0)
             else:
-                rscode_buffer_pointer = rscode_buffer_pointer - 1
-                code_in.value = rscode_buffer_list[rscode_buffer_pointer]
-                setTimeout(moveTo0,0)
+                self.buffer_pointer = self.buffer_pointer - 1
+                self.code_in.value = self.buffer_list[self.buffer_pointer]
+                setTimeout(self.moveTo0,0)
 
-    elif ev.which == 40:
-        nl_poss = getNewLinePosition()
+
+    def moveTo0(self):
+        self.code_in.selectionStart = 0
+        self.code_in.selectionEnd = 0
+        self.setRuler()
+
+
+    def onDownArrowCallback(self, ev):
+        nl_poss = self.getNewLinePosition()
         if nl_poss.length < 2 or ev.target.selectionStart > nl_poss[-2]:
             ev.preventDefault()
-            if rscode_buffer_list.length == 0 or rscode_buffer_pointer == rscode_buffer_list.length:
-                code_in.value = ""
-                setRuler()
+            if self.buffer_list.length == 0 or self.buffer_pointer == self.buffer_list.length:
+                self.code_in.value = ""
+                self.setRuler()
             else:
-                rscode_buffer_pointer = rscode_buffer_pointer + 1
-                if rscode_buffer_pointer == rscode_buffer_list.length:
-                    code_in.value = ""
-                    setRuler()
+                self.buffer_pointer = self.buffer_pointer + 1
+                if self.buffer_pointer == self.buffer_list.length:
+                    self.code_in.value = ""
+                    self.setRuler()
                 else:
-                    code_in.value = rscode_buffer_list[rscode_buffer_pointer]
+                    self.code_in.value = self.buffer_list[self.buffer_pointer]
                     setTimeout(moveTo0,0)
-        
+
+
+
+
+helper = Helper()
+helper.initialize()
+
+rs_repl = CodeInTextArea()
+rs_repl.initialize()
+
+
 
 
 #**********************************************************************/
-</script><script id='rs_out'></script><script>require_script('rapydscript-0.5.53.js', function() { document.getElementById('rs_out').innerHTML = rapydscript.compile(document.getElementById('rs_code').innerHTML, {private_scope: false, beautify: true}); }); </script></body></html>
+</script><script id='rs_out'></script><script>
+    
+    var compile_rs_code = function() { document.getElementById('rs_out').innerHTML = rapydscript.compile(document.getElementById('rs_code').innerHTML, {private_scope: false, beautify: true}); }
+    require_script('rapydscript-0.5.53.js', compile_rs_code);
+    //compile_rs_code();
+
+</script></body></html>
