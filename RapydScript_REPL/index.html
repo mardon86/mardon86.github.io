@@ -2,7 +2,6 @@
 /**************************** CSS *************************************/
 
 
-
 html,body {
     height: 100%;
     margin: 0px;
@@ -55,64 +54,8 @@ textarea:focus {
 
 
 
-/**********************************************************************/
-</style><script src='rsvp.min.js'></script><script src='rapydscript-0.5.53.js'></script><script>
-/************************** JAVASCRIPT ********************************/
-
-
-
-var require_script = function (the_script, scriptloadedcallback) {
-    
-    if (localStorage && localStorage.getItem('cached-' + the_script)) {
-        
-        var cs = localStorage.getItem('cached-' + the_script);
-        var cs_tag = document.createElement("SCRIPT");
-        cs_tag.id = the_script
-        cs_tag.defer = true;
-        cs_tag.text = cs;
-        document.head.appendChild(cs_tag);
-        if (scriptloadedcallback) {
-            scriptloadedcallback();
-        }
-        
-    } else {
-        
-        //alert("fetching..");
-        
-        var promise_script = function (the_script, callback) {
-            var getScript = new RSVP.Promise(function (resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4 && xhr.status === 200) {
-                        resolve(xhr.responseText);
-                    }
-                }
-                xhr.open("GET", the_script);
-                xhr.send();
-            });
-            getScript.then(callback);
-        }
-        
-        promise_script(the_script, function (fromResolve) {
-            var cs_tag = document.createElement("SCRIPT");
-            cs_tag.id = the_script
-            cs_tag.defer = true;
-            cs_tag.text = fromResolve;
-            document.head.appendChild(cs_tag);
-            if (scriptloadedcallback) {
-                scriptloadedcallback();
-            }
-            localStorage.setItem('cached-' + the_script, fromResolve);
-        });
-        
-    }
-
-}
-
-
-
-/**********************************************************************/
-</script></head><body>
+/**********************************************************************
+</style><script src='get_script.js'></script><script src='get_rs.js'></script></head><body>
 <!--************************* HTML **********************************-->
 
 
@@ -135,9 +78,7 @@ var require_script = function (the_script, scriptloadedcallback) {
 
 
 
-#RapydScript_version = document.querySelectorAll('script[id^="rapydscript"]')[0].id.replace(/^rapydscript-|\.js$/g, "")
-RapydScript_version = '0.5.53'
-
+ՐՏ_version = localStorage.ՐՏ_ver;
 
 
 
@@ -163,7 +104,7 @@ class ՐՏ_HelperFunctions:
 
 
     def intro(self):
-        self.repl.code_out.value = "RapydScript " + RapydScript_version + " REPL, " + (new Date).toString() + "\n" +\
+        self.repl.code_out.value = "RapydScript " + ՐՏ_version + " REPL, " + (new Date).toString() + "\n" +\
         "[" + window.navigator.userAgent + "] " + "\n" +\
         "Type \"help()\" for more information.\n"
 
@@ -415,9 +356,17 @@ rs_repl.initialize()
 
 #**********************************************************************/
 </script><script id='rs_out'></script><script>
-    
-    var compile_rs_code = function() { document.getElementById('rs_out').innerHTML = rapydscript.compile(document.getElementById('rs_code').innerHTML, {private_scope: false, beautify: true}); }
-    //require_script('rapydscript-0.5.53.js', compile_rs_code);
-    compile_rs_code();
+
+
+document.getElementById('out').value = 'Please wait. Loading...'
+
+get_rs(null, null, function () {
+    document.getElementById('out').value = document.getElementById('out').value + '.';
+}, function () {
+    document.getElementById('rs_out').innerHTML = rapydscript.compile(document.getElementById('rs_code').innerHTML, {private_scope: false, beautify: true});
+}, function () {
+    document.getElementById('out').value = 'Failed to get rapydscript';
+});
+
 
 </script></body></html>
