@@ -94,13 +94,16 @@ class ՐՏ_HelperFunctions:
         window.help = self.help.bind(self)
         window.ՐՏ_print = self.print.bind(self)
         window.cls = self.cls.bind(self)
-        window.ih = self.ih.bind(self)
-        window.dh = self.dh.bind(self)
-        window.ifz = self.ifz.bind(self)
-        window.dfz = self.dfz.bind(self)
+        window.ch = self.ch.bind(self)
+        window.cfs = self.cfs.bind(self)
         window.tc = self.tc.bind(self)
         window.bc = self.bc.bind(self)
         window.js_out = self.js_out.bind(self)
+        self.import_count = 0
+        window.ՐՏ_imports = {}
+        window.import_from_user = self.import_from_user.bind(self)
+        window.help_import = self.help_import.bind(self)
+        window.me = self.me.bind(self)
 
 
     def intro(self):
@@ -110,15 +113,41 @@ class ՐՏ_HelperFunctions:
 
 
     def help(self):
-        self.repl.code_out.value = self.repl.code_out.value + "Type \"ih(n)\" or \"dh(n)\" to increase or decrease body height, where n is a number representing amount of percent. Default to 5.\n" +\
-        "Type \"ifz(n)\" or \"dfz(n)\" to increase or decrease font size, where n is a number representing amount of pt. Default to 1.\n" +\
+        self.repl.code_out.value = self.repl.code_out.value +\
+        "Type \"ch(n)\" to change the height, where n is a string representing CSS measurement. Default to 100%.\n" +\
+        "Type \"cfs(n)\" to change font size, where n is a string representing CSS font size. Default to 10pt.\n" +\
         "Type \"tc(c)\" to change text color, where c is a string representing CSS color. Default to 'white'\n" +\
         "Type \"bc(c)\" to change background color, where c is a string representing CSS color. Default to 'black'\n" +\
         "Type \"cls()\" to clear screen.\n" +\
         "Type \"intro()\" to clear screen and print the intro.\n" +\
-        "Type \"print(js_out(-1))\" to see the js output of the last rapydscript code entered.\n" +\
+        "Type \"js_out(-1)\" to see the js output of the last rapydscript code entered.\n" +\
+        "Type \"import_from_user()\" to import rapydscript from a file.\n" +\
+        "Type \"help_import()\" to print import_from_user manual\n" +\
         "Type \"help()\" to print this message.\n"
 
+
+    def help_import(self):
+        self.repl.code_out.value = self.repl.code_out.value +\
+        "import_from_user(namespace, imports)\n" +\
+        "namespace : a string representing a namespace for the object/s to be imported. Default to \'window\'\n" +\
+        "imports : a string or an array of string representing object/s to be imported. Default to \'*\' which mean all\n" +\
+        "\n" +\
+        "Example:\n" +\
+        "- import_from_user('greeter', 'greet')\n" +\
+        "- import_from_user('greeter', 'greet as sayHello')\n" +\
+        "- import_from_user('window', ['greet', 'foo as bar'])\n" +\
+        "\n" +\
+        "module file example:\n" +\
+        "\n" +\
+        "def greet(name):\n" +\
+        "    print('hello, ' + name + '!')\n" +\
+        "def foo():\n" +\
+        "    alert('bar!')\n" +\
+        "module.exports = {\n" +\
+        "    greet: greet,\n" +\
+        "    foo: foo\n" +\
+        "}\n"
+        
 
     def print(self, t):
         self.repl.code_out.value = self.repl.code_out.value + t.toString() + '\n'
@@ -130,22 +159,13 @@ class ՐՏ_HelperFunctions:
         self.repl.setRuler()
 
 
-    def dh(self, n=5):
-        document.body.style.height = (parseInt(document.body.style.height) - n).toString() + '%'
+    def ch(self, n='100%'):
+        document.body.style.height = n
 
 
-    def ih(self, n=5):
-        document.body.style.height = (parseInt(document.body.style.height) + n).toString() + '%'
-
-
-    def ifz(self, n=1):
+    def cfs(self, n='10pt'):
         for i in self.code_area:
-            i.style.fontSize = (parseInt(i.style.fontSize) + n).toString() + 'pt'
-
-
-    def dfz(self, n=1):
-        for i in self.code_area:
-            i.style.fontSize = (parseInt(i.style.fontSize) - n).toString() + 'pt'
+            i.style.fontSize = n
 
 
     def tc(self, c='white'):
@@ -170,6 +190,67 @@ class ՐՏ_HelperFunctions:
         return jso
 
 
+    def import_from_user(self, namespace='window', imports='*'):
+        self.import_count = self.import_count + 1
+        src = 'ՐՏ_imports.id_' + self.import_count
+        precode = src + ' = {};\nvar ' + namespace + ' = ' + namespace + ' || {};\n(function(module){\n'
+        postcode = '\n})(' + src + ')'
+
+        if imports == '*':
+            select_import = '\nvar ՐՏ_itr_imports = Object.keys(' + src + '.exports);\nfor (var i=0; i<ՐՏ_itr_imports.length; i++) {\n    ' + namespace + '[ՐՏ_itr_imports[i]] = ' + src + '.exports[ՐՏ_itr_imports[i]];\n}'
+        elif Object.prototype.toString.call(imports) == '[object String]':
+            imp_tokens = imports.split(' as ')
+            if imp_tokens.length == 1:
+                select_import = '\nif (Object.keys(' + src + '.exports).indexOf(\'' + imp_tokens[0] + '\') !== -1) {\n    ' + namespace + '[\'' + imp_tokens[0] + '\'] = ' + src + '.exports[\'' + imp_tokens[0] + '\'];\n} else {\n    ՐՏ_print(\'TypeError: ' + imp_tokens[0] + ' is not found\');\n    throw TypeError(\'' + imp_tokens[0] + ' is not found\');\n}'
+            elif imp_tokens.length == 2:
+                select_import = '\nif (Object.keys(' + src + '.exports).indexOf(\'' + imp_tokens[0] + '\') !== -1) {\n    ' + namespace + '[\'' + imp_tokens[1] + '\'] = ' + src + '.exports[\'' + imp_tokens[0] + '\'];\n} else {\n    ՐՏ_print(\'TypeError: ' + imp_tokens[0] + ' is not found\');\n    throw TypeError(\'' + imp_tokens[0] + ' is not found\');\n}'
+            else:
+                raise TypeError(imports)
+        elif Object.prototype.toString.call(imports) == '[object Array]':
+            select_import = ''
+            for i in imports:
+                imp_tokens = i.split(' as ')
+                if imp_tokens.length == 1:
+                    select_import = select_import + '\nif (Object.keys(' + src + '.exports).indexOf(\'' + imp_tokens[0] + '\') !== -1) {\n    ' + namespace + '[\'' + imp_tokens[0] + '\'] = ' + src + '.exports[\'' + imp_tokens[0] + '\'];\n} else {\n    ՐՏ_print(\'TypeError: ' + imp_tokens[0] + ' is not found\');\n    throw TypeError(\'' + imp_tokens[0] + ' is not found\');\n}'
+                elif imp_tokens.length == 2:
+                    select_import = select_import + '\nif (Object.keys(' + src + '.exports).indexOf(\'' + imp_tokens[0] + '\') !== -1) {\n    ' + namespace + '[\'' + imp_tokens[1] + '\'] = ' + src + '.exports[\'' + imp_tokens[0] + '\'];\n} else {\n    ՐՏ_print(\'TypeError: ' + imp_tokens[0] + ' is not found\');\n    throw TypeError(\'' + imp_tokens[0] + ' is not found\');\n}'
+                else:
+                    raise TypeError(imports)
+        else:
+            raise TypeError(imports)
+
+        def indent(c):
+            co = []
+            for i in c.split('\n'):
+                co.push(i.replace(/^/g, '    '))
+            return co.join('\n')
+
+        inp = document.createElement('input')
+        inp.type = 'file'
+        inp.id = 'import_file'
+        inp.style.display = 'none'
+        document.body.appendChild(inp)
+        inp.click()
+        inp.onchange = def(e):
+            fr = new FileReader()
+            fr.readAsText(e.target.files[0], 'utf-8')
+            fr.onload = def(ef):
+                self.repl.rs_import = ef.target.result
+                try:
+                    js_out = rapydscript.compile(self.repl.rs_import, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
+                    #print(precode + indent(js_out) + postcode + select_import)
+                    eval.call(window, precode + indent(js_out) + postcode + select_import)
+                except as err:
+                    self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n' + err.name + ': ' + err.message
+            .bind(self)
+        .bind(self)
+
+
+    def me(self):
+        self.ch('72%')
+        self.cfs('6pt')
+
+
 
 
 class ՐՏ_Repl:
@@ -189,17 +270,24 @@ class ՐՏ_Repl:
         self.code_in.onkeydown = def(ev):
             if ev.which == 13:
                 self.onEnterCallback.bind(self)(ev)
-            elif ev.which == 8:
-                self.onBackspaceCallback.bind(self)(ev)
-            elif ev.which == 46:
-                self.onDeleteCallback.bind(self)(ev)
             elif ev.which == 38:
                 self.onUpArrowCallback.bind(self)(ev)
             elif ev.which == 40:
                 self.onDownArrowCallback.bind(self)(ev)
+            self.onKeyDownCallback.bind(self)(ev)
 
         self.code_in.onscroll = def(ev):
             self.ruler.scrollTop = ev.target.scrollTop
+
+        co_length = 0
+        self.co_stayScrolledDown = setInterval(def():
+            nonlocal co_length
+            if self.code_out.value.length == co_length:
+                pass
+            else:
+                self.code_out.scrollTop = self.code_out.scrollHeight - self.code_out.getBoundingClientRect().height
+                co_length = self.code_out.value.length
+        , 50)
 
         intro()
         self.code_out.value = self.code_out.value + '>>> '
@@ -231,7 +319,7 @@ class ՐՏ_Repl:
         code_in_text = self.code_in.value
         self.buffer_list.push(code_in_text)
         self.buffer_pointer = self.buffer_list.length + 0
-        self.code_out.value = self.code_out.value[0:-4] + self.fusion.bind(self)(self.ruler.value, self.code_in.value) + '\n'
+        self.code_out.value = self.code_out.value.replace(/\n\>\>\> $|\n*$/g,'') + '\n' + self.fusion.bind(self)(self.ruler.value, self.code_in.value) + '\n'
         self.ruler.value = '>>> \n'
         self.code_in.value = ''
 
@@ -243,7 +331,7 @@ class ՐՏ_Repl:
                 if Object.prototype.toString.call(out_eval) == '[object Number]':
                     return out_eval
                 else if Object.prototype.toString.call(out_eval) == '[object String]':
-                    return out_eval
+                    return '\'' + out_eval + '\''
                 else if Object.prototype.toString.call(out_eval) == '[object Boolean]':
                     return out_eval
                 else if Object.prototype.toString.call(out_eval) == '[object Date]':
@@ -253,12 +341,12 @@ class ՐՏ_Repl:
                 else if Object.prototype.toString.call(out_eval) == '[object Array]':
                     return self.describe_array.bind(self)(out_eval)
                 else if Object.prototype.toString.call(out_eval) == '[object Undefined]':
-                    return ''
+                    return undefined
                 else:
                     return Object.prototype.toString.call(out_eval)
             ).call(window, code_out_text.replace(/^\n|;$/g, ""))
         
-            if out_retval == '':
+            if out_retval == undefined:
                 pass
             else:
                 print(out_retval)
@@ -274,16 +362,15 @@ class ՐՏ_Repl:
         rightl = right.split('\n')
         outputl = []
         for i in range(len(rightl)-1):
-            outputl.push(leftl[i] + rightl[i])
+            if (leftl[i]):
+                outputl.push(leftl[i] + rightl[i])
+            else:
+                outputl.push('... ' + rightl[i])
         return outputl.join('\n')
 
 
-    def onBackspaceCallback(self, ev):
-        self.setRuler()
-
-
-    def onDeleteCallback(self, ev):
-        self.setRuler()
+    def onKeyDownCallback(self, ev):
+        setTimeout(self.setRuler.bind(self), 0)
 
 
     def setRuler(self):
@@ -326,7 +413,7 @@ class ՐՏ_Repl:
     def moveTo0(self):
         self.code_in.selectionStart = 0
         self.code_in.selectionEnd = 0
-        self.setRuler()
+        setTimeout(self.setRuler.bind(self), 0)
 
 
     def onDownArrowCallback(self, ev):
@@ -335,12 +422,12 @@ class ՐՏ_Repl:
             ev.preventDefault()
             if self.buffer_list.length == 0 or self.buffer_pointer == self.buffer_list.length:
                 self.code_in.value = ""
-                self.setRuler()
+                setTimeout(self.setRuler.bind(self), 0)
             else:
                 self.buffer_pointer = self.buffer_pointer + 1
                 if self.buffer_pointer == self.buffer_list.length:
                     self.code_in.value = ""
-                    self.setRuler()
+                    setTimeout(self.setRuler.bind(self), 0)
                 else:
                     self.code_in.value = self.buffer_list[self.buffer_pointer]
                     setTimeout(moveTo0,0)
