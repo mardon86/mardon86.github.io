@@ -241,9 +241,10 @@ class ՐՏ_HelperFunctions:
                     else:
                         raise Error('Import failed')
                     self.repl.code_out.value = self.repl.code_out.value + '.'
+                .bind(self)
                 xhr.open('GET', url)
                 xhr.send()
-            ).call(this)
+            ).bind(self)()
         else:
             inp = document.createElement('input')
             inp.type = 'file'
