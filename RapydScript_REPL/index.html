@@ -231,17 +231,21 @@ class ՐՏ_HelperFunctions:
                 self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + 'loading..'
                 xhr.onreadystatechange = def():
                     self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + '.'
-                    if xhr.readyState == 4 and xhr.status == 200:
-                        try:
-                            js_out = rapydscript.compile(xhr.responseText, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
-                            #print(precode + indent(js_out) + postcode + select_import)
-                            eval.call(window, precode + indent(js_out) + postcode + select_import)
-                            self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + '\ndone.'
-                            setTimeout(def():
-                                self.repl.code_out.value = self.repl.code_out.value.replace(/[\. \n]*$/g, '.') + '.\n>>> '
-                            .bind(self), 5)
-                        except as err:
-                            self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
+                    if xhr.readyState == 4:
+                        xhr.status == 200:
+                            try:
+                                js_out = rapydscript.compile(xhr.responseText, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
+                                #print(precode + indent(js_out) + postcode + select_import)
+                                eval.call(window, precode + indent(js_out) + postcode + select_import)
+                                self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + '\ndone.'
+                                setTimeout(def():
+                                    self.repl.code_out.value = self.repl.code_ out.value.replace(/[\. \n]*$/g, '.') + '.\n>>> '
+                                .bind(self), 5)
+                            except as err:
+                                self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
+                        else:
+                            self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'\n') + 'Import failed.\n'
+                            raise Error('Import failed')
                     else:
                         self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'\n') + 'Import failed.\n'
                         raise Error('Import failed')
