@@ -246,9 +246,6 @@ class ՐՏ_HelperFunctions:
                         else:
                             self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'\n') + 'Import failed.\n'
                             raise Error('Import failed')
-                    else:
-                        self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'\n') + 'Import failed.\n'
-                        raise Error('Import failed')
                 .bind(self)
                 xhr.open('GET', url)
                 xhr.send()
