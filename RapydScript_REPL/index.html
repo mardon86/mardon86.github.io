@@ -101,7 +101,7 @@ class ՐՏ_HelperFunctions:
         window.js_out = self.js_out.bind(self)
         self.import_count = 0
         window.ՐՏ_imports = {}
-        window.import_from_user = self.import_from_user.bind(self)
+        window.import_script = self.import_script.bind(self)
         window.help_import = self.help_import.bind(self)
         window.me = self.me.bind(self)
 
@@ -190,7 +190,7 @@ class ՐՏ_HelperFunctions:
         return jso
 
 
-    def import_from_user(self, namespace='window', imports='*'):
+    def import_script(self, url, namespace='window', imports='*'):
         self.import_count = self.import_count + 1
         src = 'ՐՏ_imports.id_' + self.import_count
         precode = src + ' = {};\nvar ' + namespace + ' = ' + namespace + ' || {};\n(function(module){\n'
@@ -225,25 +225,42 @@ class ՐՏ_HelperFunctions:
                 co.push(i.replace(/^/g, '    '))
             return co.join('\n')
 
-        inp = document.createElement('input')
-        inp.type = 'file'
-        inp.id = 'import_file'
-        inp.style.display = 'none'
-        document.body.appendChild(inp)
-        inp.click()
-        inp.onchange = def(e):
-            fr = new FileReader()
-            fr.readAsText(e.target.files[0], 'utf-8')
-            fr.onload = def(ef):
-                self.repl.rs_import = ef.target.result
-                try:
-                    js_out = rapydscript.compile(self.repl.rs_import, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
-                    #print(precode + indent(js_out) + postcode + select_import)
-                    eval.call(window, precode + indent(js_out) + postcode + select_import)
-                except as err:
-                    self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n' + err.name + ': ' + err.message
+        if url:
+            (def():
+                xhr = new XMLHttpRequest()
+                xhr.onreadystatechange = def():
+                    if xhr.readyState == 4 and xhr.status == 200:
+                        try:
+                            js_out = rapydscript.compile(xhr.responseText, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
+                            #print(precode + indent(js_out) + postcode + select_import)
+                            eval.call(window, precode + indent(js_out) + postcode + select_import)
+                        except as err:
+                            self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
+                    else:
+                        raise Error('Import failed')
+                xhr.open('GET', url)
+                xhr.send()
+            ).call(this)
+        else:
+            inp = document.createElement('input')
+            inp.type = 'file'
+            inp.id = 'import_file'
+            inp.style.display = 'none'
+            document.body.appendChild(inp)
+            inp.click()
+            inp.onchange = def(e):
+                fr = new FileReader()
+                fr.readAsText(e.target.files[0], 'utf-8')
+                fr.onload = def(ef):
+                    self.repl.rs_import = ef.target.result
+                    try:
+                        js_out = rapydscript.compile(self.repl.rs_import, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
+                        #print(precode + indent(js_out) + postcode + select_import)
+                        eval.call(window, precode + indent(js_out) + postcode + select_import)
+                    except as err:
+                        self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
+                .bind(self)
             .bind(self)
-        .bind(self)
 
 
     def me(self):
@@ -352,7 +369,7 @@ class ՐՏ_Repl:
                 print(out_retval)
 
         except as err:
-            self.code_out.value = self.code_out.value + err.name + ': ' + err.message + '\n'
+            self.code_out.value = self.code_out.value + '[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
 
         self.code_out.value = self.code_out.value + '>>> '
 
