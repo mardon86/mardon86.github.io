@@ -237,10 +237,10 @@ class ՐՏ_HelperFunctions:
                                 js_out = rapydscript.compile(xhr.responseText, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
                                 #print(precode + indent(js_out) + postcode + select_import)
                                 eval.call(window, precode + indent(js_out) + postcode + select_import)
-                                self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + '\ndone.'
+                                self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + '\ndone'
                                 setTimeout(def():
-                                    self.repl.code_out.value = self.repl.code_out.value.replace(/\.*$/g, '.') + '.\n>>> '
-                                .bind(self), 5)
+                                    self.repl.code_out.value = self.repl.code_out.value.replace(/\.*$/g, '') + '.\n>>> '
+                                .bind(self), 250)
                             except as err:
                                 self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
                         else:
