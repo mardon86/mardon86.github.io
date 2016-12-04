@@ -1,0 +1,20 @@
+def greet():
+    print('hello world!')
+
+class MyButton:
+    def __init__(self, top='0px', left='0px'):
+        self.e = document.createElement('button')
+        self.e.innerHTML = 'Click Me!'
+        self.e.onclick = def():
+            alert('hello')
+        self.e.style.position = 'absolute'
+        self.e.style.top = top
+        self.e.style.left = left
+        document.body.appendChild(self.e)
+
+module.exports = {
+    greet: greet,
+    MyButton: MyButton
+}
+    
+    

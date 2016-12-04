@@ -121,14 +121,17 @@ class ՐՏ_HelperFunctions:
         "Type \"cls()\" to clear screen.\n" +\
         "Type \"intro()\" to clear screen and print the intro.\n" +\
         "Type \"js_out(-1)\" to see the js output of the last rapydscript code entered.\n" +\
-        "Type \"import_from_user()\" to import rapydscript from a file.\n" +\
-        "Type \"help_import()\" to print import_from_user manual\n" +\
+        "Type \"import_script()\" to import rapydscript file from server or user input file.\n" +\
+        "Type \"help_import()\" to print import_script manual\n" +\
         "Type \"help()\" to print this message.\n"
 
 
     def help_import(self):
         self.repl.code_out.value = self.repl.code_out.value +\
-        "import_from_user(namespace, imports)\n" +\
+        "Usage:\n" +\
+        "'import_scripr(url, namespace, imports)'\n" +\
+        "" +\
+        "url : the script url location. If undefined it takes script from user input. Default to undefined.\n" +\
         "namespace : a string representing a namespace for the object/s to be imported. Default to \'window\'\n" +\
         "imports : a string or an array of string representing object/s to be imported. Default to \'*\' which mean all\n" +\
         "\n" +\
@@ -244,7 +247,7 @@ class ՐՏ_HelperFunctions:
                             except as err:
                                 self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
                         else:
-                            self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\nfetchind script is failed.\n>>> '
+                            self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\nfetching script is failed.\n>>> '
                             raise Error('fetching script is failed.')
                 .bind(self)
                 xhr.open('GET', url)
