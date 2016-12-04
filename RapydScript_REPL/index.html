@@ -237,7 +237,7 @@ class ՐՏ_HelperFunctions:
                     if xhr.readyState == 4:
                         if xhr.status == 200:
                             self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + '\nfetching script is done.'
-                            seyTimeout(def():
+                            setTimeout(def():
                                 self.repl.code_out.value = self.repl.code_out.value.replace(/\.*$/g, '') + '.\n>>> '
                             , 100)
                             try:
@@ -459,7 +459,7 @@ class ՐՏ_Repl:
                     setTimeout(self.setRuler.bind(self), 0)
                 else:
                     self.code_in.value = self.buffer_list[self.buffer_pointer]
-                    setTimeout(self.moveTo0.bind(self),0)
+                    setTimeout(self.moveTo0.bind(self), 0)
 
 
 
