@@ -232,7 +232,7 @@ class ՐՏ_HelperFunctions:
                 xhr.onreadystatechange = def():
                     self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + '.'
                     if xhr.readyState == 4:
-                        xhr.status == 200:
+                        if xhr.status == 200:
                             try:
                                 js_out = rapydscript.compile(xhr.responseText, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
                                 #print(precode + indent(js_out) + postcode + select_import)
