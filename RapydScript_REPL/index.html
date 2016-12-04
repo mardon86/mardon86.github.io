@@ -238,11 +238,12 @@ class ՐՏ_HelperFunctions:
                             eval.call(window, precode + indent(js_out) + postcode + select_import)
                             self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + '\ndone.'
                             setTimeout(def():
-                                self.repl.code_out.value = self.repl.code_out.value.replace(/\.+$/g, '.') + '.\n>>> '
+                                self.repl.code_out.value = self.repl.code_out.value.replace(/[\. \n]*$/g, '.') + '.\n>>> '
                             .bind(self), 5)
                         except as err:
                             self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
                     else:
+                        self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'\n') + 'Import failed.\n'
                         raise Error('Import failed')
                 .bind(self)
                 xhr.open('GET', url)
