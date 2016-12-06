@@ -1,8 +1,8 @@
 <!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='initial-scale=1.0, maximum-scale=1.0, user-scalable=no'><style>
-/**************************** CSS *************************************/
+/***************************** CSS ************************************/
 
 
-html,body {
+html, body {
     height: 100%;
     margin: 0px;
     padding: 0px;
@@ -10,23 +10,20 @@ html,body {
 
 #container {
     height: 100%;
-    //border:solid red 1px;
-    display:flex;
-    flex-direction:column;
+    display: flex;
+    flex-direction: column;
 }
 
 #out_container, #in_container {
     width: 100%;
-    display:flex;
-    flex-direction:row;
+    display: flex;
+    flex-direction: row;
 }
 
-
-
 textarea {
-    color:white;
+    color: white;
     font-family: monospace;
-    background-color:black;
+    background-color: black;
     resize: none;
     overflow: auto;
     border-style: solid;
@@ -36,7 +33,7 @@ textarea {
 }
 
 textarea:focus {
-    outline:none;
+    outline: none;
 }
 
 #ruler {
@@ -45,16 +42,16 @@ textarea:focus {
 }
 
 #out_container {
-    flex-grow:3;
+    flex-grow: 3;
 }
 
 #in_container, #in, #out {
-    flex-grow:1;
+    flex-grow: 1;
 }
 
 
 
-/**********************************************************************
+/**********************************************************************/
 </style><script src='get_script.js'></script><script src='get_rs.js'></script></head><body>
 <!--************************* HTML **********************************-->
 
@@ -78,10 +75,6 @@ textarea:focus {
 
 
 
-ՐՏ_version = localStorage.ՐՏ_ver;
-
-
-
 class ՐՏ_HelperFunctions:
 
     def __init__(self, repl):
@@ -90,6 +83,7 @@ class ՐՏ_HelperFunctions:
         document.body.style.height = '100%'
         for i in self.code_area:
             i.style.fontSize = '10pt'
+        self.rs_ver = localStorage.ՐՏ_ver
         window.intro = self.intro.bind(self)
         window.help = self.help.bind(self)
         window.ՐՏ_print = self.print.bind(self)
@@ -104,10 +98,11 @@ class ՐՏ_HelperFunctions:
         window.import_script = self.import_script.bind(self)
         window.help_import = self.help_import.bind(self)
         window.me = self.me.bind(self)
+        window.me2 = self.me2.bind(self)
 
 
     def intro(self):
-        self.repl.code_out.value = "RapydScript " + ՐՏ_version + " REPL, " + (new Date).toString() + "\n" +\
+        self.repl.code_out.value = "RapydScript " + self.rs_ver + " REPL, " + (new Date).toString() + "\n" +\
         "[" + window.navigator.userAgent + "] " + "\n" +\
         "Type \"help()\" for more information.\n"
 
@@ -129,18 +124,18 @@ class ՐՏ_HelperFunctions:
     def help_import(self):
         self.repl.code_out.value = self.repl.code_out.value +\
         "Usage:\n" +\
-        "'import_scripr(url, namespace, imports)'\n" +\
-        "" +\
-        "url : the script url location. If undefined it takes script from user input. Default to undefined.\n" +\
+        "\"import_script(url, namespace, imports)\"\n" +\
+        "\n" +\
+        "url : the script url location. If undefined or falsy it takes script from user input. Default to False.\n" +\
         "namespace : a string representing a namespace for the object/s to be imported. Default to \'window\'\n" +\
-        "imports : a string or an array of string representing object/s to be imported. Default to \'*\' which mean all\n" +\
+        "imports : a string or an array of strings representing object/s to be imported. Default to \'*\' which means all\n" +\
         "\n" +\
         "Example:\n" +\
-        "- import_from_user('greeter', 'greet')\n" +\
-        "- import_from_user('greeter', 'greet as sayHello')\n" +\
-        "- import_from_user('window', ['greet', 'foo as bar'])\n" +\
+        "- import_script('greeter.pyj', 'greeter', 'greet')\n" +\
+        "- import_script('https://mardon86.github.io/RapydScript_REPL/test.pyj', 'greeter', 'greet as sayHello')\n" +\
+        "- import_script(False, 'window', ['greet', 'foo as bar'])\n" +\
         "\n" +\
-        "module file example:\n" +\
+        "Module content example:\n" +\
         "\n" +\
         "def greet(name):\n" +\
         "    print('hello, ' + name + '!')\n" +\
@@ -149,7 +144,10 @@ class ՐՏ_HelperFunctions:
         "module.exports = {\n" +\
         "    greet: greet,\n" +\
         "    foo: foo\n" +\
-        "}\n"
+        "}\n" +\
+        "\n" +\
+        "Try:\n" +\
+        "    import_script('clock.pyj')\n"
         
 
     def print(self, t):
@@ -193,90 +191,137 @@ class ՐՏ_HelperFunctions:
         return jso
 
 
-    def import_script(self, url, namespace='window', imports='*'):
+    def indent(self, c):
+        co = []
+        for i in c.split('\n'):
+            co.push(i.replace(/^/g, '    '))
+        return co.join('\n')
+
+
+    def import_from_server(self, url, precode, postcode, select_import):
+        self.repl.exec_proc_done = False
+        xhr = new XMLHttpRequest()
+        self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + 'loading..'
+        xhr.onreadystatechange = def():
+            self.repl.code_out.value = self.repl.code_out.value.replace(/\n?\>\>\> $/g, '') + '.'
+            if xhr.readyState == 4:
+                self.repl.exec_proc_done = True
+                if xhr.status == 200:
+                    self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\nfetching script is done.\n>>> \n'
+                    try:
+                        js_out = rapydscript.compile(xhr.responseText, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
+                        #print(precode + self.indent(js_out) + postcode + select_import)
+                        eval.call(window, precode + self.indent(js_out) + postcode + select_import)
+                    except as err:
+                        self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
+                    self.repl.exec_proc_done = True
+                else:
+                    self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\nfetching script is failed.\n>>> \n'
+                    raise Error('fetching script is failed.')
+        .bind(self)
+        xhr.open('GET', url)
+        xhr.send()
+
+
+    def import_from_input(self, url, precode, postcode, select_import):
+        inp = document.createElement('input')
+        inp.type = 'file'
+        inp.id = 'import_file'
+        inp.style.display = 'none'
+        document.body.appendChild(inp)
+        inp.click()
+        inp.onchange = def(e):
+            fr = new FileReader()
+            fr.readAsText(e.target.files[0], 'utf-8')
+            fr.onload = def(ef):
+                self.repl.rs_import = ef.target.result
+                try:
+                    js_out = rapydscript.compile(self.repl.rs_import, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
+                    #print(precode + self.indent(js_out) + postcode + select_import)
+                    eval.call(window, precode + self.indent(js_out) + postcode + select_import)
+                except as err:
+                    self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
+            .bind(self)
+        .bind(self)
+
+
+    def precode_template(self, src, namespace):
+        out =\
+        src + ' = {};\n' +\
+        'var ' + namespace + ' = ' + namespace + ' || {};\n' +\
+        '(function(module){\n'
+        return out
+
+
+    def postcode_template(self, src):
+        out = '\n})(' + src + ')'
+        return out
+
+
+    def select_import_all_template(self, src, namespace):
+        out = '\n' +\
+        src + '.exports = ' + src + '.exports || {};\n' +\
+        'var ՐՏ_itr_imports = Object.keys(' + src + '.exports);\n' +\
+        'for (var i=0; i<ՐՏ_itr_imports.length; i++) {\n' +\
+        '    ' + namespace + '[ՐՏ_itr_imports[i]] = ' + src + '.exports[ՐՏ_itr_imports[i]];\n' +\
+        '}'
+        return out
+
+
+    def select_import_indiv_template(self, src, namespace, imp_tokens0, imp_tokens1):
+        out = '\n' +\
+        'if (Object.keys(' + src + '.exports).indexOf(\'' + imp_tokens0 + '\') !== -1) {\n' +\
+        '    ' + namespace + '[\'' + imp_tokens1 + '\'] = ' + src + '.exports[\'' + imp_tokens0 + '\'];\n' +\
+        '} else {\n' +\
+        '    ՐՏ_print(\'TypeError: ' + imp_tokens0 + ' is not found\');\n' +\
+        '    throw TypeError(\'' + imp_tokens0 + ' is not found\');\n' +\
+        '}'
+        return out
+
+
+    def import_script(self, url=False, namespace='window', imports='*'):
         self.import_count = self.import_count + 1
         src = 'ՐՏ_imports.id_' + self.import_count
-        precode = src + ' = {};\nvar ' + namespace + ' = ' + namespace + ' || {};\n(function(module){\n'
-        postcode = '\n})(' + src + ')'
+        precode = self.precode_template(src, namespace)
+        postcode = self.postcode_template(src)
 
         if imports == '*':
-            select_import = '\nvar ՐՏ_itr_imports = Object.keys(' + src + '.exports);\nfor (var i=0; i<ՐՏ_itr_imports.length; i++) {\n    ' + namespace + '[ՐՏ_itr_imports[i]] = ' + src + '.exports[ՐՏ_itr_imports[i]];\n}'
+            select_import = self.select_import_all_template(src, namespace)
         elif Object.prototype.toString.call(imports) == '[object String]':
             imp_tokens = imports.split(' as ')
+            select_import = src + '.exports = ' + src + '.exports || {};\n'
             if imp_tokens.length == 1:
-                select_import = '\nif (Object.keys(' + src + '.exports).indexOf(\'' + imp_tokens[0] + '\') !== -1) {\n    ' + namespace + '[\'' + imp_tokens[0] + '\'] = ' + src + '.exports[\'' + imp_tokens[0] + '\'];\n} else {\n    ՐՏ_print(\'TypeError: ' + imp_tokens[0] + ' is not found\');\n    throw TypeError(\'' + imp_tokens[0] + ' is not found\');\n}'
+                select_import = select_import + self.select_import_indiv_template(src, namespace, imp_tokens[0], imp_tokens[0])
             elif imp_tokens.length == 2:
-                select_import = '\nif (Object.keys(' + src + '.exports).indexOf(\'' + imp_tokens[0] + '\') !== -1) {\n    ' + namespace + '[\'' + imp_tokens[1] + '\'] = ' + src + '.exports[\'' + imp_tokens[0] + '\'];\n} else {\n    ՐՏ_print(\'TypeError: ' + imp_tokens[0] + ' is not found\');\n    throw TypeError(\'' + imp_tokens[0] + ' is not found\');\n}'
+                select_import = select_import + self.select_import_indiv_template(src, namespace, imp_tokens[0], imp_tokens[1])
             else:
                 raise TypeError(imports)
         elif Object.prototype.toString.call(imports) == '[object Array]':
-            select_import = ''
+            select_import = src + '.exports = ' + src + '.exports || {};\n'
             for i in imports:
                 imp_tokens = i.split(' as ')
                 if imp_tokens.length == 1:
-                    select_import = select_import + '\nif (Object.keys(' + src + '.exports).indexOf(\'' + imp_tokens[0] + '\') !== -1) {\n    ' + namespace + '[\'' + imp_tokens[0] + '\'] = ' + src + '.exports[\'' + imp_tokens[0] + '\'];\n} else {\n    ՐՏ_print(\'TypeError: ' + imp_tokens[0] + ' is not found\');\n    throw TypeError(\'' + imp_tokens[0] + ' is not found\');\n}'
+                    select_import = select_import + self.select_import_indiv_template(src, namespace, imp_tokens[0], imp_tokens[0])
                 elif imp_tokens.length == 2:
-                    select_import = select_import + '\nif (Object.keys(' + src + '.exports).indexOf(\'' + imp_tokens[0] + '\') !== -1) {\n    ' + namespace + '[\'' + imp_tokens[1] + '\'] = ' + src + '.exports[\'' + imp_tokens[0] + '\'];\n} else {\n    ՐՏ_print(\'TypeError: ' + imp_tokens[0] + ' is not found\');\n    throw TypeError(\'' + imp_tokens[0] + ' is not found\');\n}'
+                    select_import = select_import + self.select_import_indiv_template(src, namespace, imp_tokens[0], imp_tokens[1])
                 else:
                     raise TypeError(imports)
         else:
             raise TypeError(imports)
 
-        def indent(c):
-            co = []
-            for i in c.split('\n'):
-                co.push(i.replace(/^/g, '    '))
-            return co.join('\n')
-
         if url:
-            def():
-                xhr = new XMLHttpRequest()
-                self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + 'loading..'
-                xhr.onreadystatechange = def():
-                    self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + '.'
-                    if xhr.readyState == 4:
-                        if xhr.status == 200:
-                            self.repl.code_out.value = self.repl.code_out.value.replace(/\>\>\> $/g, '') + '\nfetching script is done.'
-                            setTimeout(def():
-                                self.repl.code_out.value = self.repl.code_out.value.replace(/\.*$/g, '') + '.\n>>> '
-                            , 100)
-                            try:
-                                js_out = rapydscript.compile(xhr.responseText, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
-                                #print(precode + indent(js_out) + postcode + select_import)
-                                eval.call(window, precode + indent(js_out) + postcode + select_import)
-                            except as err:
-                                self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
-                        else:
-                            self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\nfetching script is failed.\n>>> '
-                            raise Error('fetching script is failed.')
-                .bind(self)
-                xhr.open('GET', url)
-                xhr.send()
-            .bind(self)()
+            self.import_from_server.bind(self)(url, precode, postcode, select_import)
         else:
-            inp = document.createElement('input')
-            inp.type = 'file'
-            inp.id = 'import_file'
-            inp.style.display = 'none'
-            document.body.appendChild(inp)
-            inp.click()
-            inp.onchange = def(e):
-                fr = new FileReader()
-                fr.readAsText(e.target.files[0], 'utf-8')
-                fr.onload = def(ef):
-                    self.repl.rs_import = ef.target.result
-                    try:
-                        js_out = rapydscript.compile(self.repl.rs_import, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
-                        #print(precode + indent(js_out) + postcode + select_import)
-                        eval.call(window, precode + indent(js_out) + postcode + select_import)
-                    except as err:
-                        self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
-                .bind(self)
-            .bind(self)
+            self.import_from_input.bind(self)(url, precode, postcode, select_import)
 
 
     def me(self):
         self.ch('72%')
+        self.cfs('6pt')
+
+
+    def me2(self):
+        self.ch('63%')
         self.cfs('6pt')
 
 
@@ -291,6 +336,7 @@ class ՐՏ_Repl:
         self.buffer = document.getElementById('buffer')
         self.buffer_list = []
         self.buffer_pointer = 0
+        self.exec_proc_done = True
 
         ՐՏ_HelperFunctions(self)
         
@@ -319,7 +365,7 @@ class ՐՏ_Repl:
         , 50)
 
         intro()
-        self.code_out.value = self.code_out.value + '>>> '
+        self.code_out.value = self.code_out.value + '>>> \n'
 
 
     def onEnterCallback(self, ev):
@@ -343,51 +389,54 @@ class ՐՏ_Repl:
                 res = res + ', ' + Object.prototype.toString.call(i)
         return res.replace(/^\[\, /g, '[') + ']'
 
-    
+
+    def obj_toOutput(self, inp):
+        out_eval = eval.call(window, inp) #the actual eval
+        asis_list = ['[object Number]', '[object Boolean]', '[object Date]', '[object RegExp]']
+        obj_toString = Object.prototype.toString.call(out_eval)
+        if obj_toString in asis_list:
+            return out_eval
+        else if obj_toString == '[object String]':
+            return '\'' + out_eval + '\''
+        else if obj_toString == '[object Array]':
+            return self.describe_array.bind(self)(out_eval)
+        else if obj_toString == '[object Undefined]':
+            return undefined
+        else:
+            return obj_toString
+
+
     def exec(self):
         code_in_text = self.code_in.value
         self.buffer_list.push(code_in_text)
         self.buffer_pointer = self.buffer_list.length + 0
-        self.code_out.value = self.code_out.value.replace(/\n\>\>\> $|\n*$/g,'') + '\n' + self.fusion.bind(self)(self.ruler.value, self.code_in.value) + '\n'
+        self.code_out.value = self.code_out.value.replace(/\n\>\>\> \n$|\n*$/g,'') + '\n' + self.fusion.bind(self)(self.ruler.value, self.code_in.value) + '\n'
         self.ruler.value = '>>> \n'
         self.code_in.value = ''
-
         try:
-
-            code_out_text = rapydscript.compile(code_in_text, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
-            out_retval = (def (inp):
-                out_eval = eval.call(window, inp)
-                if Object.prototype.toString.call(out_eval) == '[object Number]':
-                    return out_eval
-                else if Object.prototype.toString.call(out_eval) == '[object String]':
-                    return '\'' + out_eval + '\''
-                else if Object.prototype.toString.call(out_eval) == '[object Boolean]':
-                    return out_eval
-                else if Object.prototype.toString.call(out_eval) == '[object Date]':
-                    return out_eval
-                else if Object.prototype.toString.call(out_eval) == '[object RegExp]':
-                    return out_eval
-                else if Object.prototype.toString.call(out_eval) == '[object Array]':
-                    return self.describe_array.bind(self)(out_eval)
-                else if Object.prototype.toString.call(out_eval) == '[object Undefined]':
-                    return undefined
-                else:
-                    return Object.prototype.toString.call(out_eval)
-            ).call(window, code_out_text.replace(/^\n|;$/g, ""))
-        
+            options = {
+                omit_baselib: true,
+                private_scope: false,
+                beautify: true
+            }
+            outjs_text = rapydscript.compile(code_in_text, options).replace("var __name__ = \"__main__\";\n","").replace(/^\n|;$/g, "")
+            out_retval = self.obj_toOutput.bind(self)(outjs_text)
             if out_retval == undefined:
                 pass
             else:
                 print(out_retval)
-
         except as err:
             self.code_out.value = self.code_out.value + '[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
+        if self.exec_proc_done:
+            self.put_cursor()
 
-        self.code_out.value = self.code_out.value + '>>> '
+
+    def put_cursor(self):
+        self.code_out.value = self.code_out.value.replace(/\n$/g, '') + '\n>>> \n'
 
 
     def fusion(self, left, right):
-        leftl = left.split('\n')
+        leftl = left.split('\n') 
         rightl = right.split('\n')
         outputl = []
         for i in range(len(rightl)-1):
@@ -432,11 +481,11 @@ class ՐՏ_Repl:
                     pass
                 else:
                     self.code_in.value = self.buffer_list[self.buffer_pointer]
-                    setTimeout(self.moveTo0,0)
+                    setTimeout(self.moveTo0.bind(self), 0)
             else:
                 self.buffer_pointer = self.buffer_pointer - 1
                 self.code_in.value = self.buffer_list[self.buffer_pointer]
-                setTimeout(self.moveTo0,0)
+                setTimeout(self.moveTo0.bind(self), 0)
 
 
     def moveTo0(self):
@@ -479,7 +528,13 @@ document.getElementById('out').value = 'Please wait. Loading...'
 get_rs(null, null, function () {
     document.getElementById('out').value = document.getElementById('out').value + '.';
 }, function () {
-    document.getElementById('rs_out').innerHTML = rapydscript.compile(document.getElementById('rs_code').innerHTML, {private_scope: false, beautify: true});
+    try {
+        rs_out = rapydscript.compile(document.getElementById('rs_code').innerHTML, {private_scope: false, beautify: true});
+        document.getElementById('rs_out').innerHTML = rs_out;
+    } catch (err) {
+        document.getElementById('out').value = '[' + err.name + '] ' + err.message + '\n' + err.stack
+        throw err
+    }
 }, function () {
     document.getElementById('out').value = 'Failed to get rapydscript';
 });
