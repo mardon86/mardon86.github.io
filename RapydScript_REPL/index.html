@@ -210,8 +210,8 @@ class ՐՏ_HelperFunctions:
                     self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\nfetching script is done.\n>>> \n'
                     try:
                         js_out = rapydscript.compile(xhr.responseText, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
-                        #print(precode + self.indent(js_out) + postcode + select_import)
-                        eval.call(window, precode + self.indent(js_out) + postcode + select_import)
+                        print(precode + self.indent(js_out) + postcode + select_import)
+                        #eval.call(window, precode + self.indent(js_out) + postcode + select_import)
                     except as err:
                         self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
                     self.repl.exec_proc_done = True
@@ -254,13 +254,13 @@ class ՐՏ_HelperFunctions:
 
 
     def postcode_template(self, src):
-        out = '\n})(' + src + ')'
+        out = '\n})(' + src + ');\n'
         return out
 
 
     def select_import_all_template(self, src, namespace):
-        out = '\n' +\
-        src + '.exports = ' + src + '.exports || {};\n' +\
+        out =\
+        src + '.exports = ' + src + '.exports || {};' +\
         'var ՐՏ_itr_imports = Object.keys(' + src + '.exports);\n' +\
         'for (var i=0; i<ՐՏ_itr_imports.length; i++) {\n' +\
         '    ' + namespace + '[ՐՏ_itr_imports[i]] = ' + src + '.exports[ՐՏ_itr_imports[i]];\n' +\
@@ -297,7 +297,7 @@ class ՐՏ_HelperFunctions:
             else:
                 raise TypeError(imports)
         elif Object.prototype.toString.call(imports) == '[object Array]':
-            select_import = src + '.exports = ' + src + '.exports || {};\n'
+            select_import = src + '.exports = ' + src + '.exports || {};'
             for i in imports:
                 imp_tokens = i.split(' as ')
                 if imp_tokens.length == 1:
