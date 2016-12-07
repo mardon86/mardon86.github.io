@@ -210,8 +210,8 @@ class ՐՏ_HelperFunctions:
                     self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\nfetching script is done.\n>>> \n'
                     try:
                         js_out = rapydscript.compile(xhr.responseText, {omit_baselib: true, private_scope: false, beautify: true}).replace("var __name__ = \"__main__\";\n","")
-                        print(precode + self.indent(js_out) + postcode + select_import)
-                        #eval.call(window, precode + self.indent(js_out) + postcode + select_import)
+                        #print(precode + self.indent(js_out) + postcode + select_import)
+                        eval.call(window, precode + self.indent(js_out) + postcode + select_import)
                     except as err:
                         self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\n[' + err.name + '] ' + err.message + '\n' + err.stack + '\n'
                     self.repl.exec_proc_done = True
