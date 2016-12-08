@@ -22,7 +22,7 @@ class MyClock:
     
     def __init__(self):
         self.canvas = document.createElement('canvas')
-        self.canvas.height = window.innerWidth
+        self.canvas.height = window.innerHeight
         self.canvas.width = window.innerWidth
         self.canvas.style.position = 'absolute'
         self.canvas.style.top = '0px'
