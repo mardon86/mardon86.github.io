@@ -1,5 +1,5 @@
 var get_rs = function (ՐՏ_url, ՐՏ_ver_url, onprogresscallback, onloadedcallback, onfailedcallback) {
-    ՐՏ_url = ՐՏ_url || 'https://raw.githubusercontent.com/atsepkov/RapydScript/master/lib/rapydscript.js';
+    ՐՏ_url = ՐՏ_url || 'https://raw.githubusercontent.com/atsepkov/RapydScript/master/lib/rapydscript_web.js';
     ՐՏ_ver_url = ՐՏ_ver_url || 'https://raw.githubusercontent.com/atsepkov/RapydScript/master/package.json';
 
     var xhr = new XMLHttpRequest();
