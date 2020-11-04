@@ -526,18 +526,17 @@ rs_repl.initialize()
 
 
 document.getElementById('out').value = 'Please wait. Loading...'
-
-get_baselib(null, null, function () {
-    document.getElementById('out').value = document.getElementById('out').value + '.';
-}, function () {
-}, function () {
-    document.getElementById('out').value = 'Failed to get rapydscript baselib';
-});
     
 get_rs(null, null, function () {
     document.getElementById('out').value = document.getElementById('out').value + '.';
 }, function () {
     try {
+        get_baselib(null, null, function () {
+            document.getElementById('out').value = document.getElementById('out').value + '.';
+        }, function () {
+        }, function () {
+            document.getElementById('out').value = 'Failed to get rapydscript baselib';
+        });
         rs_out = rapydscript.compile(document.getElementById('rs_code').innerHTML, {private_scope: false, beautify: true});
         document.getElementById('rs_out').innerHTML = rs_out;
     } catch (err) {
