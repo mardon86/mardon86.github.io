@@ -531,12 +531,6 @@ get_rs(null, null, function () {
     document.getElementById('out').value = document.getElementById('out').value + '.';
 }, function () {
     try {
-        get_baselib(null, null, function () {
-            document.getElementById('out').value = document.getElementById('out').value + '.';
-        }, function () {
-        }, function () {
-            document.getElementById('out').value = 'Failed to get rapydscript baselib';
-        });
         rs_out = rapydscript.compile(document.getElementById('rs_code').innerHTML, {private_scope: false, beautify: true});
         document.getElementById('rs_out').innerHTML = rs_out;
     } catch (err) {
@@ -547,5 +541,10 @@ get_rs(null, null, function () {
     document.getElementById('out').value = 'Failed to get rapydscript';
 });
 
+get_baselib(null, null, function () {
+}, function () {
+}, function () {
+    document.getElementById('out').value = 'Failed to get rapydscript baselib';
+});
 
 </script></body></html>
