@@ -13,10 +13,10 @@ var get_rs = function (ՐՏ_url, ՐՏ_ver_url, onprogresscallback, onloadedcallb
                 if (localStorage && localStorage.getItem('ՐՏ_ver')) {
                     if (new_ver === localStorage.getItem('ՐՏ_ver')) {
                         if (localStorage.getItem('ՐՏ')) {
-                            get_script(null, onprogresscallback, onloadedcallback, null, 'ՐՏ');
+                            get_script(null, true, onprogresscallback, onloadedcallback, null, 'ՐՏ');
                         } else {
                             localStorage.removeItem('ՐՏ_ver');
-                            get_script(ՐՏ_url, onprogresscallback, function () {
+                            get_script(ՐՏ_url, true, onprogresscallback, function () {
                                 localStorage.setItem('ՐՏ_ver', new_ver);
                                 onloadedcallback();
                             }, onfailedcallback, 'ՐՏ');
@@ -26,29 +26,29 @@ var get_rs = function (ՐՏ_url, ՐՏ_ver_url, onprogresscallback, onloadedcallb
                         oldscript_ver = localStorage.getItem('ՐՏ_ver');
                         localStorage.removeItem('ՐՏ');
                         localStorage.removeItem('ՐՏ_ver');
-                        get_script(ՐՏ_url, onprogresscallback, function () {
+                        get_script(ՐՏ_url, true, onprogresscallback, function () {
                             localStorage.setItem('ՐՏ_ver', new_ver);
                             onloadedcallback();
                         }, function (e) {
                             localStorage.setItem('ՐՏ', oldscript);
                             localStorage.setItem('ՐՏ_ver', oldscript_ver);
-                            get_script(null, onprogresscallback, onloadedcallback, null, 'ՐՏ');
+                            get_script(null, true, onprogresscallback, onloadedcallback, null, 'ՐՏ');
                         }, 'ՐՏ');
                     } else {
                         localStorage.removeItem('ՐՏ_ver');
-                        get_script(ՐՏ_url, onprogresscallback, function () {
+                        get_script(ՐՏ_url, true, onprogresscallback, function () {
                             localStorage.setItem('ՐՏ_ver', new_ver);
                             onloadedcallback();
                         }, onfailedcallback, 'ՐՏ');
                     }
                 } else if (localStorage) {
-                    get_script(ՐՏ_url, onprogresscallback, function () {
+                    get_script(ՐՏ_url, true, onprogresscallback, function () {
                         localStorage.setItem('ՐՏ_ver', new_ver);
                         onloadedcallback();
                     }, onfailedcallback, 'ՐՏ');
                 }
             } else {
-                get_script(null, onprogresscallback, onloadedcallback, onfailedcallback, 'ՐՏ');
+                get_script(null, true, onprogresscallback, onloadedcallback, onfailedcallback, 'ՐՏ');
             }
         }
     }
