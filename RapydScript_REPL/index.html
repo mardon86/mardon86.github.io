@@ -54,7 +54,7 @@ textarea:focus {
 
 
 /**********************************************************************/
-</style><script src='get_script.js'></script><script src='get_rs.js'></script></head><body>
+</style><script src='https://raw.githubusercontent.com/atsepkov/RapydScript/master/lib/baselib.js'></script><script src='get_script.js'></script><script src='get_rs.js'></script></head><body>
 <!--************************* HTML **********************************-->
 
 
@@ -189,7 +189,7 @@ class ՐՏ_HelperFunctions:
                 rs = self.repl.buffer_list[c]
         elif type(c) == 'String':
             rs = c
-        jso = rapydscript.compile(rs, {omit_baselib: False, private_scope: False, beautify: True}).replace('\nvar __name__ = "__main__";\n','')
+        jso = rapydscript.compile(rs, {omit_baselib: True, private_scope: False, beautify: True}).replace('\nvar __name__ = "__main__";\n','')
         return jso
 
 
@@ -211,7 +211,7 @@ class ՐՏ_HelperFunctions:
                 if xhr.status == 200:
                     self.repl.code_out.value = self.repl.code_out.value.replace(/\n$/g,'') + '\nfetching script is done.\n>>> \n'
                     try:
-                        js_out = rapydscript.compile(xhr.responseText, {omit_baselib: False, private_scope: false, beautify: True}).replace("var __name__ = \"__main__\";\n","")
+                        js_out = rapydscript.compile(xhr.responseText, {omit_baselib: True, private_scope: false, beautify: True}).replace("var __name__ = \"__main__\";\n","")
                         #print(precode + self.indent(js_out) + postcode + select_import)
                         eval.call(window, precode + self.indent(js_out) + postcode + select_import)
                     except as err:
@@ -238,7 +238,7 @@ class ՐՏ_HelperFunctions:
             fr.onload = def(ef):
                 self.repl.rs_import = ef.target.result
                 try:
-                    js_out = rapydscript.compile(self.repl.rs_import, {omit_baselib: False, private_scope: False, beautify: True}).replace("var __name__ = \"__main__\";\n","")
+                    js_out = rapydscript.compile(self.repl.rs_import, {omit_baselib: True, private_scope: False, beautify: True}).replace("var __name__ = \"__main__\";\n","")
                     #print(precode + self.indent(js_out) + postcode + select_import)
                     eval.call(window, precode + self.indent(js_out) + postcode + select_import)
                 except as err:
@@ -417,7 +417,7 @@ class ՐՏ_Repl:
         self.code_in.value = ''
         try:
             options = {
-                omit_baselib: False,
+                omit_baselib: True,
                 private_scope: False,
                 beautify: True
             }
