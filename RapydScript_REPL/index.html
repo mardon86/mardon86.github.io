@@ -54,7 +54,7 @@ textarea:focus {
 
 
 /**********************************************************************/
-</style><script src='https://raw.githubusercontent.com/atsepkov/RapydScript/master/lib/baselib.js'></script><script src='get_script.js'></script><script src='get_rs.js'></script></head><body>
+</style><script src='get_script.js'></script><script src='get_rs.js'></script></head><body>
 <!--************************* HTML **********************************-->
 
 
@@ -527,6 +527,13 @@ rs_repl.initialize()
 
 document.getElementById('out').value = 'Please wait. Loading...'
 
+get_baselib(null, null, function () {
+    document.getElementById('out').value = document.getElementById('out').value + '.';
+}, function () {
+}, function () {
+    document.getElementById('out').value = 'Failed to get rapydscript baselib';
+});
+    
 get_rs(null, null, function () {
     document.getElementById('out').value = document.getElementById('out').value + '.';
 }, function () {
