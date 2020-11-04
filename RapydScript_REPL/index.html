@@ -383,9 +383,9 @@ class ՐՏ_Repl:
         for i in arr:
             if Object.prototype.toString.call(i) == '[object Number]':
                 res = res + ', ' + i
-            else if Object.prototype.toString.call(i) == '[object String]':
+            elif Object.prototype.toString.call(i) == '[object String]':
                 res = res + ', \'' + i + '\'' 
-            else if Object.prototype.toString.call(i) == '[object Boolean]':
+            elif Object.prototype.toString.call(i) == '[object Boolean]':
                 res = res + ', ' + i
             else:
                 res = res + ', ' + Object.prototype.toString.call(i)
@@ -398,11 +398,11 @@ class ՐՏ_Repl:
         obj_toString = Object.prototype.toString.call(out_eval)
         if obj_toString in asis_list:
             return out_eval
-        else if obj_toString == '[object String]':
+        elif obj_toString == '[object String]':
             return '\'' + out_eval + '\''
-        else if obj_toString == '[object Array]':
+        elif obj_toString == '[object Array]':
             return self.describe_array.bind(self)(out_eval)
-        else if obj_toString == '[object Undefined]':
+        elif obj_toString == '[object Undefined]':
             return undefined
         else:
             return obj_toString
