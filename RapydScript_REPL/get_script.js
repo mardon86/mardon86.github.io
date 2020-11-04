@@ -26,7 +26,7 @@ var get_script = function (script_url, dfr, onprogresscallback, scriptloadedcall
                     if (xhr.status === 200) {
                         var cs_tag = document.createElement("SCRIPT");
                         cs_tag.id = ls_key;
-                        cs_tag.defer = true;
+                        cs_tag.defer = dfr;
                         cs_tag.text = xhr.responseText;
                         document.head.appendChild(cs_tag);
                         if (scriptloadedcallback) {
@@ -52,7 +52,7 @@ var get_script = function (script_url, dfr, onprogresscallback, scriptloadedcall
             var cs = localStorage.getItem(ls_key);
             var cs_tag = document.createElement("SCRIPT");
             cs_tag.id = ls_key;
-            cs_tag.defer = true;
+            cs_tag.defer = dfr;
             cs_tag.text = cs;
             document.head.appendChild(cs_tag);
             if (scriptloadedcallback) {
