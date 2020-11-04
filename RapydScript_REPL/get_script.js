@@ -1,4 +1,4 @@
-var get_script = function (script_url, onprogresscallback, scriptloadedcallback, getscriptfailcallback, alias) {
+var get_script = function (script_url, dfr, onprogresscallback, scriptloadedcallback, getscriptfailcallback, alias) {
     
     if (script_url) {
         var ls_key = alias || 'cached-' + script_url;
@@ -8,7 +8,7 @@ var get_script = function (script_url, onprogresscallback, scriptloadedcallback,
             var cs = localStorage.getItem(ls_key);
             var cs_tag = document.createElement("SCRIPT");
             cs_tag.id = ls_key;
-            cs_tag.defer = true;
+            cs_tag.defer = dfr;
             cs_tag.text = cs;
             document.head.appendChild(cs_tag);
             if (scriptloadedcallback) {
