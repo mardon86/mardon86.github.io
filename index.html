@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+
+<script type="text/javascript" src="tailwind-3.4.4.js"></script>
+<script type="text/javascript" src="underscore-umd.js"></script>
+<script type="text/javascript" src="vue.global.js"></script>
+<script type="text/javascript" src="rapydscript_web.js"></script>
+<script src="ace.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+
+<body>
+    
+    <div class="flex flex-col h-dvh">
+        <div class="flex-auto grid grid-cols-2">
+            <div class="border rounded-lg m-2 bg-slate-100">
+                <div class="border rounded-lg block p-2 h-full" id="inpcode"></div>
+            </div>
+            <div class="border rounded-lg block m-2 p-2" id="target"></div>
+        </div>
+        <div class="flex-none grid grid-cols-2 h-12 p-2">
+            <div>
+                <input class="p-2" type="checkbox" id="rt_check" name="realtime">
+                <label class="p-2" for="realtime"> Live Execution</label>
+                <input class="p-2" type="checkbox" id="wrap_check" name="wrap_check">
+                <label class="p-2" for="wrap_check"> Wrap Text</label>
+            </div>
+            <div>
+                <p id="time_exec"></p>
+            </div>
+        </div>
+    </div>
+    
+    
+<script type="text/rapydscript">
+
+class InputCode:
+    def __init__(self):
+        editor = ace.edit("inpcode");
+        window.editor = editor
+        self.code_el = document.getElementById("inpcode")
+        self.code = editor
+        self.code.setTheme("ace/theme/ambiance");
+        self.code.session.setMode("ace/mode/python")
+        self.storage = localStorage
+        if 'rapydscript_code' not in self.storage:
+            self.storage['rapydscript_code'] = '''# =======================================================================
+# =========================== START FROM HERE ===========================
+target = document.getElementById('target')
+# the DIV on the right side is of Id: 'target' (div#target)
+target.innerHTML = ''
+# The code in this editor is executed "oninput" (debounced 500ms)
+# so the div#target must be cleared up before next execution to prevent
+# unwanted behaviour
+#
+# The view currently appearing on the right is my created app for viewing
+# the resulting javascript code at the bottom side that compiled from
+# rapydscript code on the top.
+# 
+# This app is created using this my rapydscript code below the line.
+# Im using Vue, ace, underscore.js and tailwind that already available
+# in this webpage
+#
+# Feel free to modify or erase them to play around
+# 
+# =======================================================================
+
+
+vue_container = document.createElement('div')
+target.appendChild(vue_container)
+
+
+def setup_RootComponent(props):
+    code = Vue.ref(\'\'\'class MyButton:
+
+    def __init__(self, text, parent):
+        self.text = text
+        self.el = document.createElement("button")
+        self.el.innerHTML = "MyButton"
+        self.el.setAttribute('class','bg-slate-600 text-white p-2 rounded')
+        parent.appendChild(self.el)
+        self.el.onclick = bind(self.greet, self)
+
+    def greet(self, ev):
+        alert(self.text)
+
+mybutton = MyButton("Hello Rapydscript!", document.getElementById("target"))\'\'\')
+    compiled_code = Vue.ref('')
+
+    def compiled():
+        try:
+            compiled_code.value = rapydscript.compile(this.code, {
+                'beautify': True
+            })
+        except as exc:
+            return exc.toString()
+        return compiled_code.value
+
+    def execute():
+        obj = { eval }
+        obj.eval(compiled_code.value)
+
+    return {
+        'code': code,
+        'compiled_code': compiled_code,
+        'compiled': compiled,
+        'execute': execute
+    }
+
+
+app = Vue.createApp({
+    
+    setup: setup_RootComponent,
+
+    components: {
+
+    },
+
+    template: \'\'\'
+        <div>
+            <div class='h-[17rem] rounded-lg my-2' id='inprs' ref='inprs'></div>
+            <div class='h-[16rem] rounded-lg my-2' id='outjs'></div>
+            <button class='bg-slate-600 text-white rounded p-2 px-4' @click='execute'>Execute</button>
+        </div>
+    \'\'\'
+}).mount(vue_container)
+
+
+inprs = ace.edit('inprs')
+inprs.setTheme("ace/theme/ambiance")
+inprs.session.setMode("ace/mode/python")
+inprs.setValue(app.code)
+inprs.gotoLine(inprs.session.getLength())
+
+outjs = ace.edit('outjs')
+outjs.setTheme("ace/theme/ambiance")
+outjs.session.setMode("ace/mode/javascript")
+outjs.setValue(app.compiled())
+outjs.gotoLine(outjs.session.getLength())
+
+
+def onInputCallback(ev):
+    app.code = inprs.getValue()
+    outjs.setValue(app.compiled())
+    outjs.gotoLine(outjs.session.getLength())
+
+inprs.session.on('change', _.debounce(onInputCallback, 500))
+
+'''
+        self.code.setValue(self.storage['rapydscript_code'])
+        setInterval(bind(self.save_code, self), 5000)
+        self.disp = document.getElementById("target")
+        self.rte = document.getElementById("rt_check")
+        self.rte.checked = True
+        self.wrp = document.getElementById("wrap_check")
+        self.time_exec = document.getElementById("time_exec")
+        self.code_el.onkeyup = _.debounce(bind(self.onkeyup, self), 500)
+        self.rte.onclick = bind(self.code_focus, self)
+        self.wrp.onclick = bind(self.wrap_text, self)
+        self.code_focus()
+        self.run()
+    
+    def save_code(self):
+        self.storage['rapydscript_code'] = self.code.getValue()
+    
+    def wrap_text(self, ev):
+        self.code.session.setUseWrapMode(not self.code.session.getUseWrapMode())
+    
+    def code_focus(self, ev=None):
+        self.code_el.focus()
+
+    def onkeyup(self, args=None):
+        if not self.rte.checked:
+            return False
+        self.run()
+    
+    def run(self, args=None):
+        t0 = new Date().getTime()
+        try:
+            output_code = rapydscript.compile(self.code.getValue(), {beautify: True})
+            obj = { eval }; # indirect eval
+            obj.eval(output_code)
+        except as err:
+            self.disp.innerHTML = "<pre class=\"text-red-700 text-sm\">" + err.toString() + "</pre>"
+        t1 = new Date().getTime()
+        self.time_exec.innerHTML = "Exec time: " + (t1 - t0) + " ms"
+        return
+
+rapydscript_editor = new InputCode()
+rapydscript_editor.code.gotoLine(rapydscript_editor.code.session.getLength())
+window.rapydscript_editor = rapydscript_editor
+
+</script>
+
+
+<script>
+var scripts = document.getElementsByTagName('script');
+for (var i=0; i<scripts.length; i++) {
+    if (scripts[i].type === 'text/rapydscript') {
+        var p = document.createElement('script')
+        p.innerHTML = rapydscript.compile(scripts[i].innerHTML, {beautify: true});
+        document.body.appendChild(p);
+        document.body.removeChild(p);
+    }
+}
+</script>
+</body>
+
+</html>
