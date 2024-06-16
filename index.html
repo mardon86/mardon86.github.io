@@ -3,34 +3,90 @@
 
 <head>
 <meta charset="utf-8">
-
-<script type="text/javascript" src="tailwind-3.4.4.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script type="text/javascript" src="underscore-umd.js"></script>
 <script type="text/javascript" src="vue.global.js"></script>
 <script type="text/javascript" src="rapydscript_web.js"></script>
 <script src="ace.js" type="text/javascript" charset="utf-8"></script>
+ <link rel="stylesheet" href="normalize.css"> 
+<style>
+    
+    
+.inpcode {
+    grid-area: inpcode;
+    border-radius: 10px;
+    margin: 6px 0px 0px 6px;
+    
+}
+
+.target {
+    grid-area: target;
+    border: solid 1px;
+    border-radius: 10px;
+    margin: 6px 6px 0px 0px;
+    
+}
+
+.footer1 {
+    grid-area: footer1;
+    padding: 4px;
+    margin: 0px 0px 0px 6px;
+}
+
+.footer2 {
+    grid-area: footer2;
+    padding: 4px;
+}
+
+.container {
+    height: 100vh;
+    width: 100vw;
+    font-family: Arial, sans-serif;
+    display: grid;
+}
+
+@media (max-width: 800px) {
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 6fr 4fr 30px;
+        grid-template-areas:
+            "target target"
+            "inpcode inpcode"
+            "footer1 footer2";
+        gap: 6px;
+    }
+}
+    
+@media (min-width: 800px) {
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto 30px;
+        grid-template-areas:
+            "inpcode target"
+            "footer1 footer2";
+        gap: 6px;
+    }
+}
+</style>
+
 </head>
 
 
 <body>
     
-    <div class="flex flex-col h-dvh">
-        <div class="flex-auto grid grid-cols-2">
-            <div class="border rounded-lg m-2 bg-slate-100">
-                <div class="border rounded-lg block p-2 h-full" id="inpcode"></div>
-            </div>
-            <div class="border rounded-lg block m-2 p-2" id="target"></div>
+    <div class="container">
+        <div class='inpcode' style='' id="inpcode"></div>
+        <div class='target' style='' id="target"></div>
+        <div class='footer1' style=''>
+            <input type="checkbox" id="rt_check" name="realtime">
+            <label style="margin-right:6px" for="realtime"> Live Execution</label>
+            <input type="checkbox" id="wrap_check" name="wrap_check">
+            <label for="wrap_check"> Wrap Text</label>
         </div>
-        <div class="flex-none grid grid-cols-2 h-12 p-2">
-            <div>
-                <input class="p-2" type="checkbox" id="rt_check" name="realtime">
-                <label class="p-2" for="realtime"> Live Execution</label>
-                <input class="p-2" type="checkbox" id="wrap_check" name="wrap_check">
-                <label class="p-2" for="wrap_check"> Wrap Text</label>
-            </div>
-            <div>
-                <p id="time_exec"></p>
-            </div>
+        <div class='footer2'>
+            <span id="time_exec"></span>
         </div>
     </div>
     
@@ -47,7 +103,7 @@ class InputCode:
         self.code.session.setMode("ace/mode/python")
         self.storage = localStorage
         if 'rapydscript_code' not in self.storage:
-            self.storage['rapydscript_code'] = '''# =======================================================================
+            self.storage['rapydscript_code'] = """# =======================================================================
 # =========================== START FROM HERE ===========================
 target = document.getElementById('target')
 # the DIV on the right side is of Id: 'target' (div#target)
@@ -57,37 +113,59 @@ target.innerHTML = ''
 # unwanted behaviour
 #
 # The view currently appearing on the right is my created app for viewing
-# the resulting javascript code at the bottom side that compiled from
-# rapydscript code on the top.
-# 
+# the resulting javascript code (below) that compiled from rapydscript
+# code (top).
 # This app is created using this my rapydscript code below the line.
-# Im using Vue, ace, underscore.js and tailwind that already available
-# in this webpage
-#
 # Feel free to modify or erase them to play around
 # 
 # =======================================================================
 
+target_styles = document.createElement('style')
+target.appendChild(target_styles)
+target_styles.innerHTML = '''
+body {
+    background-color: #555;
+    color: #fff;
+}
+
+#target {
+    border:none
+}
+
+div[data-v-app] {
+    height: 100%;
+}
+
+.target_container {
+    height: 100%;
+    display: grid;
+    grid-template-rows: 1fr 1fr 36px;
+    grid-template-columns: 100%;
+    grid-template-areas: 
+      "inprs"
+      "outjs"
+      "exec_button";
+}
+'''
 
 vue_container = document.createElement('div')
 target.appendChild(vue_container)
 
 
 def setup_RootComponent(props):
-    code = Vue.ref(\'\'\'class MyButton:
+    code = Vue.ref('''class MyButton:
 
     def __init__(self, text, parent):
         self.text = text
         self.el = document.createElement("button")
         self.el.innerHTML = "MyButton"
-        self.el.setAttribute('class','bg-slate-600 text-white p-2 rounded')
         parent.appendChild(self.el)
         self.el.onclick = bind(self.greet, self)
 
     def greet(self, ev):
         alert(self.text)
 
-mybutton = MyButton("Hello Rapydscript!", document.getElementById("target"))\'\'\')
+mybutton = MyButton("Hello, Rapydscript!", document.getElementById("target"))''')
     compiled_code = Vue.ref('')
 
     def compiled():
@@ -116,18 +194,18 @@ app = Vue.createApp({
     setup: setup_RootComponent,
 
     components: {
-
     },
 
-    template: \'\'\'
-        <div>
-            <div class='h-[17rem] rounded-lg my-2' id='inprs' ref='inprs'></div>
-            <div class='h-[16rem] rounded-lg my-2' id='outjs'></div>
-            <button class='bg-slate-600 text-white rounded p-2 px-4' @click='execute'>Execute</button>
+    template: '''
+        <div class='target_container'>
+            <div style='grid-area:inprs; border-radius:10px; margin-bottom:6px;' id='inprs' ref='inprs'></div>
+            <div style='grid-area:outjs; border-radius:10px; margin-bottom:6px;' id='outjs'></div>
+            <button style='grid-area:exec_button; background-color:#3D3D3D; color: white; height: 36px; border-radius: 10px; border: none'  @click='execute'>Execute</button>
         </div>
-    \'\'\'
+    '''
 }).mount(vue_container)
 
+window.app = app
 
 inprs = ace.edit('inprs')
 inprs.setTheme("ace/theme/ambiance")
@@ -149,7 +227,8 @@ def onInputCallback(ev):
 
 inprs.session.on('change', _.debounce(onInputCallback, 500))
 
-'''
+
+"""        
         self.code.setValue(self.storage['rapydscript_code'])
         setInterval(bind(self.save_code, self), 5000)
         self.disp = document.getElementById("target")
