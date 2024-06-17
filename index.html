@@ -10,21 +10,26 @@
 <script src="ace.js" type="text/javascript" charset="utf-8"></script>
  <link rel="stylesheet" href="normalize.css"> 
 <style>
-    
-    
+body {
+    background-color: #555;
+    color: #fff;
+}
+
+.error_msg {
+    color: #faa;
+    font-size: 12px;
+    text-shadow: #500 1px 1px 1px, #200 1px 1px 5px, #000 1px 1px 10px;
+}
+
 .inpcode {
     grid-area: inpcode;
     border-radius: 10px;
-    margin: 6px 0px 0px 6px;
-    
 }
 
 .target {
     grid-area: target;
-    border: solid 1px;
     border-radius: 10px;
-    margin: 6px 6px 0px 0px;
-    
+    overflow: auto; 
 }
 
 .footer1 {
@@ -49,12 +54,19 @@
     .container {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: 6fr 4fr 30px;
+        grid-template-rows: 6fr 4fr 36px;
         grid-template-areas:
             "target target"
             "inpcode inpcode"
             "footer1 footer2";
-        gap: 6px;
+    }
+    
+    .inpcode {
+        margin: 0px 0px 0px 0px;
+    }
+    
+    .target {
+        margin: 6px 0px 0px 0px;
     }
 }
     
@@ -62,13 +74,43 @@
     .container {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto 30px;
+        grid-template-rows: auto 36px;
         grid-template-areas:
             "inpcode target"
             "footer1 footer2";
         gap: 6px;
     }
+    
+    .inpcode {
+        margin: 6px 0px 0px 6px;
+    }
+    
+    .target {
+        margin: 6px 6px 0px 0px;
+    }
 }
+
+.text-shadow {
+    text-shadow: #000 1px 1px 2px;
+}
+
+#reset_code {
+    background-color:#3D3D3D;
+    color: white;
+    height: 28px;
+    display: inline-block
+    text-decoration: none;
+    border-radius: 10px;
+    border-width: 2px;
+    border-type: solid;
+    border-color: #888 #333 #333 #888;
+    margin-left: 6px;
+}
+
+#reset_code:active {
+    border-color: #333 #888 #888 #333;
+}
+
 </style>
 
 </head>
@@ -81,12 +123,13 @@
         <div class='target' style='' id="target"></div>
         <div class='footer1' style=''>
             <input type="checkbox" id="rt_check" name="realtime">
-            <label style="margin-right:6px" for="realtime"> Live Execution</label>
+            <label class='text-shadow' style="margin-right:6px" for="realtime"> Live Execution</label>
             <input type="checkbox" id="wrap_check" name="wrap_check">
-            <label for="wrap_check"> Wrap Text</label>
+            <label class='text-shadow'for="wrap_check"> Wrap Text</label>
+            <button class='text-shadow' id='reset_code' style=''>Reset Code</button>
         </div>
         <div class='footer2'>
-            <span id="time_exec"></span>
+            <span class='text-shadow' id="time_exec"></span>
         </div>
     </div>
     
@@ -103,133 +146,8 @@ class InputCode:
         self.code.session.setMode("ace/mode/python")
         self.storage = localStorage
         if 'rapydscript_code' not in self.storage:
-            self.storage['rapydscript_code'] = """# =======================================================================
-# =========================== START FROM HERE ===========================
-target = document.getElementById('target')
-# the DIV on the right side is of Id: 'target' (div#target)
-target.innerHTML = ''
-# The code in this editor is executed "oninput" (debounced 500ms)
-# so the div#target must be cleared up before next execution to prevent
-# unwanted behaviour
-#
-# The view currently appearing on the right is my created app for viewing
-# the resulting javascript code (below) that compiled from rapydscript
-# code (top).
-# This app is created using this my rapydscript code below the line.
-# Feel free to modify or erase them to play around
-# 
-# =======================================================================
-
-target_styles = document.createElement('style')
-target.appendChild(target_styles)
-target_styles.innerHTML = '''
-body {
-    background-color: #555;
-    color: #fff;
-}
-
-#target {
-    border:none
-}
-
-div[data-v-app] {
-    height: 100%;
-}
-
-.target_container {
-    height: 100%;
-    display: grid;
-    grid-template-rows: 1fr 1fr 36px;
-    grid-template-columns: 100%;
-    grid-template-areas: 
-      "inprs"
-      "outjs"
-      "exec_button";
-}
-'''
-
-vue_container = document.createElement('div')
-target.appendChild(vue_container)
-
-
-def setup_RootComponent(props):
-    code = Vue.ref('''class MyButton:
-
-    def __init__(self, text, parent):
-        self.text = text
-        self.el = document.createElement("button")
-        self.el.innerHTML = "MyButton"
-        parent.appendChild(self.el)
-        self.el.onclick = bind(self.greet, self)
-
-    def greet(self, ev):
-        alert(self.text)
-
-mybutton = MyButton("Hello, Rapydscript!", document.getElementById("target"))''')
-    compiled_code = Vue.ref('')
-
-    def compiled():
-        try:
-            compiled_code.value = rapydscript.compile(this.code, {
-                'beautify': True
-            })
-        except as exc:
-            return exc.toString()
-        return compiled_code.value
-
-    def execute():
-        obj = { eval }
-        obj.eval(compiled_code.value)
-
-    return {
-        'code': code,
-        'compiled_code': compiled_code,
-        'compiled': compiled,
-        'execute': execute
-    }
-
-
-app = Vue.createApp({
-    
-    setup: setup_RootComponent,
-
-    components: {
-    },
-
-    template: '''
-        <div class='target_container'>
-            <div style='grid-area:inprs; border-radius:10px; margin-bottom:6px;' id='inprs' ref='inprs'></div>
-            <div style='grid-area:outjs; border-radius:10px; margin-bottom:6px;' id='outjs'></div>
-            <button style='grid-area:exec_button; background-color:#3D3D3D; color: white; height: 36px; border-radius: 10px; border: none'  @click='execute'>Execute</button>
-        </div>
-    '''
-}).mount(vue_container)
-
-window.app = app
-
-inprs = ace.edit('inprs')
-inprs.setTheme("ace/theme/ambiance")
-inprs.session.setMode("ace/mode/python")
-inprs.setValue(app.code)
-inprs.gotoLine(inprs.session.getLength())
-
-outjs = ace.edit('outjs')
-outjs.setTheme("ace/theme/ambiance")
-outjs.session.setMode("ace/mode/javascript")
-outjs.setValue(app.compiled())
-outjs.gotoLine(outjs.session.getLength())
-
-
-def onInputCallback(ev):
-    app.code = inprs.getValue()
-    outjs.setValue(app.compiled())
-    outjs.gotoLine(outjs.session.getLength())
-
-inprs.session.on('change', _.debounce(onInputCallback, 500))
-
-
-"""        
-        self.code.setValue(self.storage['rapydscript_code'])
+            self.storage.setItem('rapydscript_code', "# =======================================================================\n# =========================== START FROM HERE ===========================\ntarget = document.getElementById('target')\n# the DIV on the right side is of Id: 'target' (div#target)\ntarget.innerHTML = ''\n# The code in this editor is executed \"oninput\" (debounced 500ms)\n# so the div#target must be cleared up before next execution to prevent\n# unwanted behaviour\n#\n# The view currently appearing on the right (or top) is an app for viewing  \n# the resulting javascript code that compiled from rapydscript code\n#\n# This app is created using this my rapydscript code below the line.\n# Feel free to modify or erase them to play around\n# =======================================================================\n\ntarget_styles = document.createElement('style')\ntarget.appendChild(target_styles)\ntarget_styles.innerHTML = '''div[data-v-app] {\n    height: 100%;\n}\n\n.target_container {\n    height: 100%;\n    display: grid;\n    grid-template-rows: 1fr 1fr 36px;\n    grid-template-columns: 100%;\n    grid-template-areas: \n      \"inprs\"\n      \"outjs\"\n      \"exec_button\";\n}\n\n#exec_button {\n    grid-area:exec_button;\n    background-color:#3D3D3D;\n    color: white;\n    font-weight: bold;\n    text-shadow: #000 1px 1px 2px;\n    height: 36px;\n    display: inline-block\n    text-decoration: none;\n    border-radius: 10px;\n    border-width: 2px;\n    border-type: solid;\n    border-color: #888 #333 #333 #888;\n}\n\n#exec_button:hover {\n    text-shadow: #f84 1px 1px 1px, #f84 2px 2px 5px, #f52 1px 1px 20px;\n}\n\n#exec_button:active {\n    border-color: #333 #888 #888 #333;\n}\n'''\n\nvue_container = document.createElement('div')\ntarget.appendChild(vue_container)\n\n\ndef setup_RootComponent(props):\n    code = Vue.ref('''class MyButton:\n\n    def __init__(self, text, parent):\n        self.text = text\n        self.el = document.createElement(\"button\")\n        self.el.innerHTML = \"MyButton\"\n        parent.appendChild(self.el)\n        self.el.onclick = bind(self.greet, self)\n\n    def greet(self, ev):\n        alert(self.text)\n\nmybutton = MyButton(\"Hello, Rapydscript!\", document.getElementById(\"target\"))''')\n    compiled_code = Vue.ref('')\n\n    def compiled():\n        try:\n            compiled_code.value = rapydscript.compile(this.code, {\n                'beautify': True\n            })\n        except as exc:\n            return exc.toString()\n        return compiled_code.value\n\n    def execute():\n        obj = { eval }\n        obj.eval(compiled_code.value)\n\n    return {\n        'code': code,\n        'compiled_code': compiled_code,\n        'compiled': compiled,\n        'execute': execute\n    }\n\n\napp = Vue.createApp({\n    \n    setup: setup_RootComponent,\n\n    components: {\n    },\n\n    template: '''\n        <div class='target_container'>\n            <div style='grid-area:inprs; border-radius:10px; margin-bottom:6px;' id='inprs' ref='inprs'></div>\n            <div style='grid-area:outjs; border-radius:10px; margin-bottom:6px;' id='outjs'></div>\n            <button id='exec_button' style=''\n                @click='execute'>\n            Execute</button>\n        </div>\n    '''\n}).mount(vue_container)\n\nwindow.app = app\n\ninprs = ace.edit('inprs')\ninprs.setTheme(\"ace/theme/ambiance\")\ninprs.session.setMode(\"ace/mode/python\")\ninprs.setValue(app.code)\ninprs.gotoLine(inprs.session.getLength())\n\noutjs = ace.edit('outjs')\noutjs.setTheme(\"ace/theme/ambiance\")\noutjs.session.setMode(\"ace/mode/javascript\")\noutjs.setValue(app.compiled())\noutjs.gotoLine(outjs.session.getLength())\n\n\ndef onInputCallback(ev):\n    app.code = inprs.getValue()\n    outjs.setValue(app.compiled())\n    outjs.gotoLine(outjs.session.getLength())\n\ninprs.session.on('change', _.debounce(onInputCallback, 500))\n")
+        self.code.setValue(self.storage.getItem('rapydscript_code'))
         setInterval(bind(self.save_code, self), 5000)
         self.disp = document.getElementById("target")
         self.rte = document.getElementById("rt_check")
@@ -239,11 +157,17 @@ inprs.session.on('change', _.debounce(onInputCallback, 500))
         self.code_el.onkeyup = _.debounce(bind(self.onkeyup, self), 500)
         self.rte.onclick = bind(self.code_focus, self)
         self.wrp.onclick = bind(self.wrap_text, self)
+        self.reset_button = document.getElementById('reset_code')
+        self.reset_button.onclick = bind(self.reset_code, self)
         self.code_focus()
         self.run()
     
     def save_code(self):
-        self.storage['rapydscript_code'] = self.code.getValue()
+        self.storage.setItem('rapydscript_code', self.code.getValue())
+    
+    def reset_code(self):
+        self.storage.removeItem('rapydscript_code')
+        location.reload()
     
     def wrap_text(self, ev):
         self.code.session.setUseWrapMode(not self.code.session.getUseWrapMode())
@@ -263,7 +187,7 @@ inprs.session.on('change', _.debounce(onInputCallback, 500))
             obj = { eval }; # indirect eval
             obj.eval(output_code)
         except as err:
-            self.disp.innerHTML = "<pre class=\"text-red-700 text-sm\">" + err.toString() + "</pre>"
+            self.disp.innerHTML = "<pre class='error_msg'>" + err.toString() + "</pre>"
         t1 = new Date().getTime()
         self.time_exec.innerHTML = "Exec time: " + (t1 - t0) + " ms"
         return
