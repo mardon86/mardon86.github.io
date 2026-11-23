@@ -1,0 +1,70 @@
+{
+  "produk": [
+    {
+      "id": "velg-01",
+      "nama": "Velg Racing HSR 17 inch",
+      "kategori": "velg",
+      "merek": "HSR",
+      "ukuran": "17",
+      "pcd": "5x114.3",
+      "offset": "et40",
+      "harga": 3500000,
+      "stok": true,
+      "gambar": "img/velg-01.jpg",
+      "deskripsi": "Velg racing ring 17 dengan desain sporty. Cocok untuk mobil sedan dan SUV. Material alloy ringan dan kuat."
+    },
+    {
+      "id": "velg-02",
+      "nama": "Velg OEM Toyota Ring 15",
+      "kategori": "velg",
+      "merek": "Toyota",
+      "ukuran": "15",
+      "pcd": "4x100",
+      "offset": "et45",
+      "harga": 2200000,
+      "stok": true,
+      "gambar": "img/velg-02.jpg",
+      "deskripsi": "Velg original Toyota ring 15. Kondisi mulus, cocok untuk Avanza, Vios, dan Yaris."
+    },
+    {
+      "id": "ban-01",
+      "nama": "Ban Michelin Primacy 4 185/65 R15",
+      "kategori": "ban",
+      "merek": "Michelin",
+      "ukuran": "15",
+      "pcd": "-",
+      "offset": "-",
+      "harga": 950000,
+      "stok": true,
+      "gambar": "img/ban-01.jpg",
+      "deskripsi": "Ban premium dengan daya cengkeram tinggi dan umur pakai panjang. Cocok untuk harian."
+    },
+    {
+      "id": "ban-02",
+      "nama": "Ban Bridgestone Ecopia 195/65 R15",
+      "kategori": "ban",
+      "merek": "Bridgestone",
+      "ukuran": "15",
+      "pcd": "-",
+      "offset": "-",
+      "harga": 850000,
+      "stok": true,
+      "gambar": "img/ban-02.jpg",
+      "deskripsi": "Ban hemat bahan bakar dengan performa basah yang baik. Ideal untuk mobil keluarga."
+    },
+    {
+      "id": "velg-03",
+      "nama": "Velg Advanti Racing 18 inch",
+      "kategori": "velg",
+      "merek": "Advanti",
+      "ukuran": "18",
+      "pcd": "5x114.3",
+      "offset": "et35",
+      "harga": 5200000,
+      "stok": false,
+      "gambar": "img/velg-03.jpg",
+      "deskripsi": "Velg racing premium ring 18. Desain agresif untuk tampilan mobil yang lebih sporty."
+    }
+  ]
+}
+

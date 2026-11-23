@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Katalog Produk — Nama Toko Anda</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Velg<span>Ban</span>.id</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="katalog.html" class="active">Katalog</a>
+        <a href="tentang.html">Tentang</a>
+        <a href="kontak.html">Kontak</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      <h2>Katalog Velg & Ban</h2>
+
+      <div class="filter-bar">
+        <input type="text" id="filter-cari" placeholder="Cari produk...">
+        <select id="filter-kategori">
+          <option value="">Semua Kategori</option>
+          <option value="velg">Velg</option>
+          <option value="ban">Ban</option>
+        </select>
+        <select id="filter-merek">
+          <option value="">Semua Merek</option>
+        </select>
+        <select id="filter-ukuran">
+          <option value="">Semua Ukuran</option>
+          <option value="15">Ring 15</option>
+          <option value="16">Ring 16</option>
+          <option value="17">Ring 17</option>
+          <option value="18">Ring 18</option>
+          <option value="19">Ring 19</option>
+        </select>
+      </div>
+
+      <div id="grid-produk" class="grid-produk"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2025 Nama Toko Anda.</p>
+    </div>
+  </footer>
+
+  <script src="js/produk.js"></script>
+  <script src="js/filter.js"></script>
+</body>
+</html>
+
